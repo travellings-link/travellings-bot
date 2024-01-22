@@ -32,7 +32,7 @@ const config = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": "Mozilla/5.0 (compatible; Travellings Check Bot; +https://www.travellings.cn/docs/qa)"
   },
-  timeout: process.env.AXIOS_TIMEOUT * 1000,
+  timeout: process.env.LOAD_TIMEOUT * 1000,
   maxRedirects: 5,
   validateStatus: null,
 }

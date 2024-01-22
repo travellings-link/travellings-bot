@@ -12,10 +12,11 @@
 const chalk = require('chalk');
 const cron = require('node-cron');
 const moment = require('moment-timezone');
-const normalCheck = require('./methods/normal');
+const sql = require('./modules/sqlConfig');
+const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
 
-global.version = "3.7";
+global.version = "3.8";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
@@ -31,14 +32,16 @@ async function checkAll() {
     
               Copyright © 2020-2024 Travellings Project. All rights reserved.  //  Version ${global.version}
   `);  
-    await console.log(chalk.green(`[${global.time()}] [APP] [INFO] ✓ 开始巡查站点`))
-    await normalCheck();
-    // await browserCheck();
+    console.log(chalk.cyan(`[${global.time()}] [INFO] 尝试连接到数据库...`))
+    await sql.sync().then(console.log(chalk.green(`[${global.time()}] [OK] 成功连接到数据库~ `))).catch(err => console.log(chalk.red(`[${global.time()}] [ERROR]`, err)));  // 数据库同步 + 错误处理
+    console.log(chalk.cyan(`[${global.time()}] [INFO] API Started at port ${port} on ${host}`));
+    await console.log(chalk.green(`[${global.time()}] [APP] [INFO] ✓ 开始巡查站点`));
+    await axiosCheck();
+    await browserCheck();
     console.log(chalk.green(`[${global.time()}] [APP] [INFO] △ 检测完成，Sleep.`))
 }
 
 checkAll();
-// browserCheck(854);
 
 cron.schedule('0 4 * * *', () => {
     checkAll();

@@ -11,8 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
+const { Op } = require('sequelize');
 const moment = require('moment-timezone');
-const sql = require('../modules/sqlConfig');
 const chrome = require('selenium-webdriver/chrome');
 const { webModel } = require('../modules/sqlModel');
 const { sendMessage } = require('../modules/telegramBot');
@@ -35,16 +35,13 @@ let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivex
 
 function initBrowser() {
     const options = new chrome.Options();
-    options.addArguments('--headless'); // headless
-    options.addArguments('--disable-gpu'); // 禁用GPU加速
-    options.addArguments('--disable-extensions'); // 禁用扩展
-    options.addArguments('--disable-dev-shm-usage'); // 禁用/dev/shm
+    // options.addArguments('--headless'); // headless
     options.addArguments('--disable-features=StylesWithCss=false'); // 禁用CSS加载
     options.addArguments('--blink-settings=imagesEnabled=false'); // 禁用图片加载
     options.addArguments(`--user-data-dir=${path.resolve(tmpPath)}`);
     options.addArguments(`--user-agent=Mozilla/5.0 (compatible; Travellings Check Bot; +https://www.travellings.cn/docs/qa)`);
-    // options.addArguments('--disable-logging');  // 禁用浏览器控制台输出
-    // options.addArguments('--log-level=3');
+    options.addArguments('--disable-logging');  // 禁用浏览器控制台输出
+    options.addArguments('--log-level=3');
     options.addArguments('--no-sandbox');
 
     const driver = new Builder()
@@ -72,7 +69,7 @@ async function browserCheck(input) {
       const sitesToCheck = await webModel.findAll({
         where: {
           status: {
-            [sql.Sequelize.Op.ne]: 'RUN'
+            [Op.notIn]: ['RUN', 'TIMEOUT']
           }
         },
       });
@@ -112,6 +109,7 @@ async function browserCheck(input) {
 
 async function check(driver, site, logStream) {
   try {
+    await driver.manage().setTimeouts({ pageLoad: process.env.LOAD_TIMEOUT * 1000 });
     await driver.get(site.link);
     total++;
 
