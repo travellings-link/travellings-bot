@@ -115,7 +115,7 @@ async function normalCheck(inputID) {
     } catch (error) {
       if (error.code === 'ECONNABORTED') {
         web.status = 'TIMEOUT';
-        web.failedReason = `Axios Error：连接超时（预设时间：${process.env.AXIOS_TIMEOUT} 秒）`;
+        web.failedReason = `Axios Error：连接超时（预设时间：${process.env.LOAD_TIMEOUT} 秒）`;
         timeout++;
       } else if (error.code === 'ENOTFOUND') {
         web.status = 'ERROR';
