@@ -35,7 +35,7 @@ let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivex
 
 function initBrowser() {
     const options = new chrome.Options();
-    // options.addArguments('--headless'); // headless
+    options.addArguments('--headless'); // headless
     options.addArguments('--disable-features=StylesWithCss=false'); // 禁用CSS加载
     options.addArguments('--blink-settings=imagesEnabled=false'); // 禁用图片加载
     options.addArguments(`--user-data-dir=${path.resolve(tmpPath)}`);
