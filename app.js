@@ -16,7 +16,7 @@ const sql = require('./modules/sqlConfig');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
 
-global.version = "3.8";
+global.version = "3.9";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
@@ -34,7 +34,6 @@ async function checkAll() {
   `);  
     console.log(chalk.cyan(`[${global.time()}] [INFO] 尝试连接到数据库...`))
     await sql.sync().then(console.log(chalk.green(`[${global.time()}] [OK] 成功连接到数据库~ `))).catch(err => console.log(chalk.red(`[${global.time()}] [ERROR]`, err)));  // 数据库同步 + 错误处理
-    console.log(chalk.cyan(`[${global.time()}] [INFO] API Started at port ${port} on ${host}`));
     await console.log(chalk.green(`[${global.time()}] [APP] [INFO] ✓ 开始巡查站点`));
     await axiosCheck();
     await browserCheck();
