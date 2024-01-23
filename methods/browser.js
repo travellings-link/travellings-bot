@@ -125,7 +125,7 @@ async function check(driver, site, logStream) {
         // });
 
       const pageSource = await driver.getPageSource();
-      const include = pageSource.includes('travellings');
+      const include = pageSource.includes('travelling');
 
       if (include) {
         await webModel.update({ status: 'RUN', failedReason: null }, { where: { id: site.id } });

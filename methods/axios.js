@@ -93,7 +93,7 @@ async function normalCheck(inputID) {
       
       const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
 
-      if (response.status === 200 && response.data.includes('travellings')) {
+      if (response.status === 200 && response.data.includes('travelling')) {
         web.status = 'RUN';
         web.failedReason = null;
         run++;

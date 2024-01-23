@@ -16,7 +16,7 @@ const sql = require('./modules/sqlConfig');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
 
-global.version = "4.0";
+global.version = "4.1";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
