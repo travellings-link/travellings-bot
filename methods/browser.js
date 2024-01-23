@@ -69,7 +69,7 @@ async function browserCheck(input) {
       const sitesToCheck = await webModel.findAll({
         where: {
           status: {
-            [Op.notIn]: ['RUN', 'TIMEOUT']
+            [Op.in]: ['LOST', 'ERROR']
           }
         },
       });
@@ -103,7 +103,7 @@ async function browserCheck(input) {
     console.log(chalk.cyan(`[${global.time()}] [BROWSER] [INFO] 检测完成 >> ${stats}`));
     logStream.write(`\n[${global.time()}] [BROWSER] [INFO] 检测完成 >> ${stats}`);
     logStream.close();
-    sendMessage(`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Browser\n持续了 ${spentTime(input)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${global.time()} CST\n备注：仅巡查非 RUN 状态的站点`);
+    sendMessage(`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Browser\n持续了 ${spentTime(input)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${global.time()} CST\n备注：仅巡查 LOST 和 ERROR 状态的站点`);
   }
 }
 
