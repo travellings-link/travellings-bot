@@ -13,7 +13,7 @@ const chalk = require('chalk');
 const cron = require('node-cron');
 const moment = require('moment-timezone');
 const sql = require('./modules/sqlConfig');
-const bot = require('./modules/telegramBot');
+const { bot } = require('./modules/telegramBot');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
 
