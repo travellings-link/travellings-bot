@@ -28,18 +28,18 @@ async function sendMessage(message) {
 
 bot.start((ctx) => ctx.reply('你好！有什么事喵？'));
 bot.command('help', (ctx) => ctx.reply(`
-**帮助菜单**\n
-（路人）
+<strong>帮助菜单</strong>\n
+<strong>路人</strong>
 /start - 开始
 /help - 帮助
 /query <ID> - 查询站点
-`, { parse_mode: 'markdown' }));
+`, { parse_mode: 'HTML' }));
 
 bot.command('version', (ctx) => ctx.reply(`
-**Travellings Bot**
+<strong>Travellings Bot</strong>
 Version：${global.version}
 https://github.com/travellings-link/travellings-bot
-`, { disable_web_page_preview: true, parse_mode: 'markdown' }));
+`, { disable_web_page_preview: true, parse_mode: 'HTML' }));
 
 bot.command('query', async (ctx) => {
   const chatId = ctx.from.id;
@@ -59,7 +59,7 @@ bot.command('query', async (ctx) => {
     const result = await webModel.findByPk(input);
     if (result) {
       const { name, link, status, failedReason, tag } = result;
-      return ctx.reply(`**找到啦 ~**\n\nID：${input}\n名称：${name}\n网址：${link}\n巡查状态：${status}\n失败原因：${failedReason}\nTAG：${tag}`, { disable_web_page_preview: true, parse_mode: 'markdown' });
+      return ctx.reply(`<strong>找到啦 ~</strong>\n\nID：${input}\n名称：${name}\n网址：${link}\n巡查状态：${status}\n失败原因：${failedReason}\nTAG：${tag}`, { disable_web_page_preview: true, parse_mode: 'HTML' });
     } else {
       return ctx.reply('没找到喵 ~');
     }
