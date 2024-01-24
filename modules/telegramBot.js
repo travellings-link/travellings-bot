@@ -70,5 +70,4 @@ bot.command('query', async (ctx) => {
 });
 
 
-module.exports = { sendMessage };
-module.exports = bot;
+module.exports = { sendMessage, bot };
