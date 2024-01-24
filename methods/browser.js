@@ -30,9 +30,6 @@ if (!fs.existsSync(tmpPath)) {
     fs.mkdirSync(tmpPath);
 }
 
-// 初始化值
-let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
-
 function initBrowser() {
     const options = new chrome.Options();
     options.addArguments('--headless'); // headless
@@ -108,6 +105,9 @@ async function browserCheck(input) {
 }
 
 async function check(driver, site, logStream) {
+  // 初始化值
+  let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
+
   try {
     await driver.manage().setTimeouts({ pageLoad: process.env.LOAD_TIMEOUT * 1000 });
     await driver.get(site.link);
