@@ -57,6 +57,7 @@ function spentTime(input) {
 }
 
 async function browserCheck(input) {
+    let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
     const driver = initBrowser();
     const startTime = new Date();
     const logStream = fs.createWriteStream(path.join(logPath, `${moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH-mm-ss')}_Browser.log`), { flags: 'a' });
@@ -105,9 +106,6 @@ async function browserCheck(input) {
 }
 
 async function check(driver, site, logStream) {
-  // 初始化值
-  let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
-
   try {
     await driver.manage().setTimeouts({ pageLoad: process.env.LOAD_TIMEOUT * 1000 });
     await driver.get(site.link);
