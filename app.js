@@ -44,7 +44,7 @@ sql.sync().then(console.log(chalk.green(`[${global.time()}] [APP] [OK] 成功连
 bot.launch().then(console.log(chalk.green(`[${global.time()}] [TBOT] [OK] Telegram Bot 已启动 ~`))).catch(err => console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, err)));
 console.log(chalk.cyan(`[${global.time()}] [APP] [INFO] 没到点呢，小睡一会 ~`))
 
-browserCheck();
+// browserCheck();
 
 cron.schedule('0 4 * * *', () => {
     checkAll();
