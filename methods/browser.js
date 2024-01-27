@@ -16,7 +16,9 @@ const moment = require('moment-timezone');
 const chrome = require('selenium-webdriver/chrome');
 const { webModel } = require('../modules/sqlModel');
 const { sendMessage } = require('../modules/telegramBot');
-const { Builder, By, until } = require('selenium-webdriver');
+const { Builder } = require('selenium-webdriver');
+
+var total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
 
 // 如果不存在 logs 则创建一个
 const logPath = process.env.LOG_PATH;
@@ -57,7 +59,6 @@ function spentTime(input) {
 }
 
 async function browserCheck(input) {
-    let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
     const driver = initBrowser();
     const startTime = new Date();
     const logStream = fs.createWriteStream(path.join(logPath, `${moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH-mm-ss')}_Browser.log`), { flags: 'a' });

@@ -17,7 +17,7 @@ const { bot } = require('./modules/telegramBot');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
  
-global.version = "4.4";
+global.version = "4.5";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
@@ -43,6 +43,8 @@ console.log(chalk.cyan(`[${global.time()}] [APP] [INFO] 尝试连接到数据库
 sql.sync().then(console.log(chalk.green(`[${global.time()}] [APP] [OK] 成功连接到数据库 ~`))).catch(err => console.log(chalk.red(`[${global.time()}] [APP] [ERROR]`, err)));  // 数据库同步 + 错误处
 bot.launch().then(console.log(chalk.green(`[${global.time()}] [TBOT] [OK] Telegram Bot 已启动 ~`))).catch(err => console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, err)));
 console.log(chalk.cyan(`[${global.time()}] [APP] [INFO] 没到点呢，小睡一会 ~`))
+
+browserCheck();
 
 cron.schedule('0 4 * * *', () => {
     checkAll();
