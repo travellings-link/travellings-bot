@@ -70,9 +70,6 @@ async function browserCheck(input) {
         where: {
           status: {
             [Op.in]: ['LOST', 'ERROR']
-          },
-          id: {
-            [Op.notIn]: ['854']
           }
         },
       });
