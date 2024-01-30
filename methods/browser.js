@@ -15,7 +15,7 @@ const { Op } = require('sequelize');
 const moment = require('moment-timezone');
 const chrome = require('selenium-webdriver/chrome');
 const { webModel } = require('../modules/sqlModel');
-const { sendMessage } = require('../modules/telegramBot');
+const { sendMessage } = require('../modules/push');
 const { Builder } = require('selenium-webdriver');
 
 var total, run, lost, errorCount, timeout, fourxx, fivexx;
@@ -70,6 +70,9 @@ async function browserCheck(input) {
         where: {
           status: {
             [Op.in]: ['LOST', 'ERROR']
+          },
+          id: {
+            [Op.notIn]: ['854']
           }
         },
       });
@@ -137,7 +140,7 @@ async function check(driver, site, logStream) {
         console.log(chalk.blue(`[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> ${site.status} → LOST`));
         logStream.write(`\n[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> ${site.status} → LOST`)
         lost++;
-      }j
+      }
     }
   } catch (error) {
     console.log(chalk.blue(`[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> 不做修改, Reason >> ${error.message}`));

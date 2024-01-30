@@ -15,7 +15,7 @@ const chalk = require('chalk');
 const moment = require('moment-timezone');
 const dotenv = require('dotenv').config();
 const { webModel } = require('../modules/sqlModel');
-const { sendMessage } = require('../modules/telegramBot');
+const { sendMessage } = require('../modules/push');
 
 const config = {
   headers: {
