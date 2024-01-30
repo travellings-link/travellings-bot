@@ -78,32 +78,33 @@ bot.command('check', async (ctx) => {
   const admins = await ctx.getChatAdministrators(chatId);
 
   if (admins.some(admin => admin.user.id === userId)) {
-    if (input) {
-      if (isNaN(input)) {
-        return ctx.reply("ID无效，请输入纯数字喵")
-      }
-
-      if (method.toString() === 'axios') {
-        ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
-        axiosCheck(input);
-      } else if (method.toString() === 'browser') {
-        ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
-        browserCheck(input);
-      } else {
-        return ctx.reply("方式无效，当前可选方式：axios, browser 喵");
-      }
-    } else if (method) {
-      if (method.toString() === 'axios') {
+    if (isNaN(input)) {
+      if (input.toString() === 'axios') {
         ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
         axiosCheck();
-      } else if (method.toString() === 'browser') {
+      } else if (input.toString() === 'browser') {
         ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
         browserCheck();
       } else {
         return ctx.reply("方式无效，当前可选方式：axios, browser 喵");
       }
     } else {
-      ctx.reply(`<strong>使用方法</strong>\n\n/check ID axios/browser - 巡查指定站点\n/check axios/browser - axios：巡查所有站点, browser：巡查 ERROR 和 LOST 的站点`, { parse_mode: 'HTML' })
+      const isInputVaild = await webModel.findByPk(input);
+
+      if (isInputVaild) {
+        if (method.toString() === 'axios') {
+          ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
+          axiosCheck(input);
+        } else if (method.toString() === 'browser') {
+          ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
+          browserCheck(input);
+        } else {
+          return ctx.reply("方式无效，当前可选方式：axios, browser 喵");
+        }
+      } else {
+        ctx.reply("ID 不存在喵")
+      }
+
     }
   } else {
     ctx.reply('你是谁，不给你用喵');

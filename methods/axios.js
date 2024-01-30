@@ -69,7 +69,7 @@ async function normalCheck(inputID) {
     } else {
       console.log(chalk.red(`[${global.time()}] [AXIOS] [ERROR] 指定的 ID 不存在`));
       logStream.write(`\n[${global.time()}] [AXIOS] [ERROR] 指定的 ID 不存在`);
-      return 1;
+      return;
     }
   } else {
     // 如果未传入参数，则检查所有网站

@@ -92,7 +92,7 @@ async function browserCheck(input) {
       } else {
         console.log(chalk.red(`[${global.time()}] [BROWSER] [ERROR] 指定的 ID 不存在`));
         logStream.write(`\n[${global.time()}] [BROWSER] [ERROR] 指定的 ID 不存在`);
-        return 1;
+        return;
       }
     }
   } catch (error) {
