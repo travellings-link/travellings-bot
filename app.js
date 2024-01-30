@@ -17,7 +17,7 @@ const { bot } = require('./modules/telegramBot');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
  
-global.version = "4.8";
+global.version = "4.9";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
