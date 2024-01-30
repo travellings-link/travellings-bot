@@ -32,7 +32,7 @@ bot.command('help', (ctx) => ctx.reply(`
 <strong>路人</strong>
 /start - 开始
 /help - 帮助
-/query <ID> - 查询站点
+/query :ID - 查询站点
 `, { parse_mode: 'HTML' }));
 
 bot.command('version', (ctx) => ctx.reply(`
