@@ -62,7 +62,7 @@ async function browserCheck(input) {
             const sitesToCheck = await webModel.findAll({
                 where: {
                     status: {
-                        [Op.in]: ['LOST', 'ERROR']
+                        [Op.in]: ['LOST', 'ERROR', '403']
                     }
                 },
             });
