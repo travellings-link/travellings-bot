@@ -69,6 +69,7 @@ async function browserCheck(input) {
 
             for (const site of sitesToCheck) {
                 await check(page, site, logStream);
+                total++;
             }
         } else {
             const site = await webModel.findOne({
@@ -79,6 +80,8 @@ async function browserCheck(input) {
 
             if (site) {
                 await check(page, site, logStream);
+                total++;
+
             } else {
                 console.log(chalk.red(`[${global.time()}] [BROWSER] [ERROR] 指定的 ID 不存在`));
                 logStream.write(`\n[${global.time()}] [BROWSER] [ERROR] 指定的 ID 不存在`);
@@ -105,7 +108,6 @@ async function check(page, site, logStream) {
         await page.setViewport({ width: 1366, height: 768 });
         await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
         await page.goto(site.link);
-        total++;
 
         if (site.status.toString() >= 500) {
             console.log(chalk.blue(`[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> 不做修改`));
