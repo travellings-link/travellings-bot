@@ -19,7 +19,7 @@ async function sendMessage(message) {
   try {
     await bot.telegram.sendMessage(process.env.BOT_CHATID, message, { parse_mode: 'HTML' });
   } catch (error) {
-    console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error.message))
+    console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error))
   }
 }
 
