@@ -59,7 +59,7 @@ bot.command('query', async (ctx) => {
       return ctx.reply('没找到喵 ~');
     }
   } catch (error) {
-    console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error.message))
+    console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error))
     return ctx.reply('坏掉了喵~ 更多信息可能包含在控制台输出中.');
   }
 });
@@ -113,7 +113,7 @@ bot.command('check', async (ctx) => {
 });
 
 bot.catch((error, ctx) => {
-  console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error.message))
+  console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error))
   return ctx.reply('坏掉了喵~ 更多信息可能包含在控制台输出中.');
 });
 
