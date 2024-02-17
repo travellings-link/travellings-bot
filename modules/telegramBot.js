@@ -16,6 +16,7 @@ const { webModel } = require('./sqlModel');
 const axiosCheck = require('./../methods/axios');
 const browserCheck = require('./../methods/browser');
 const axios = require('axios');
+let stats = null;
 
 const bot = new Telegraf(process.env.BOT_TOKEN, { telegram: { apiRoot: process.env.BOT_API } });
 const allowed = process.env.ALLOW_CHATID.split(',').map(id => parseInt(id));
