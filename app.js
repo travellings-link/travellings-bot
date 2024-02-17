@@ -13,11 +13,12 @@ const chalk = require('chalk');
 const cron = require('node-cron');
 const moment = require('moment-timezone');
 const sql = require('./modules/sqlConfig');
-const { bot } = require('./modules/telegramBot');
+const { bot } = require('./telegram/bot');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
+const { auth, verify, readToken } = require('./modules/umami');
  
-global.version = "4.9";
+global.version = "5.0";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
@@ -45,6 +46,13 @@ bot.launch().then(console.log(chalk.green(`[${global.time()}] [TBOT] [OK] Telegr
 console.log(chalk.cyan(`[${global.time()}] [APP] [INFO] 没到点呢，小睡一会 ~`))
 
 // browserCheck();
+auth(process.env.UMAMI_USERNAME, process.env.UMAMI_PASSWORD);
+
+cron.schedule('0 */5 * * *', () => {
+    readToken((token) => {
+        verify(token);
+    });
+});
 
 cron.schedule('0 4 * * *', () => {
     checkAll();
