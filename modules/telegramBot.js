@@ -15,6 +15,7 @@ const dotenv = require('dotenv').config();
 const { webModel } = require('./sqlModel');
 const axiosCheck = require('./../methods/axios');
 const browserCheck = require('./../methods/browser');
+const axios = require('axios');
 
 const bot = new Telegraf(process.env.BOT_TOKEN, { telegram: { apiRoot: process.env.BOT_API } });
 const allowed = process.env.ALLOW_CHATID.split(',').map(id => parseInt(id));
@@ -35,6 +36,45 @@ bot.command('version', (ctx) => ctx.reply(`
 Version：${global.version}
 https://github.com/travellings-link/travellings-bot
 `, { disable_web_page_preview: true, parse_mode: 'HTML' }));
+
+function analysisReply() {
+  // 这次也不需要在外面调用这些变量，干脆都弄成let
+  let apiBaseUrl = process.env.UMAMI_API;
+  // 首先先求 token
+  // https://umami.is/docs/authentication
+  let authenticationUrl = apiBaseUrl + "/auth/login";
+  axios.post(authenticationUrl, {
+    "username": process.env.UMAMI_USERNAME,
+    "password": process.env.UMAMI_PASSWORD
+  })
+  .then((response) => {global['umamiToken'] = JSON.parse(response.data)['token'];});
+  const currentTimestamp = Date.now();
+  const oneDayBefore = currentTimestamp - 86400000;
+  // 给 token 提前弄好格式
+  // https://umami.is/docs/website-stats
+  let requestToken = 'Bearer ' + umamiToken;
+  global['stats'] = [];
+  function getStats(siteId) {
+    let requestUrl = apiBaseUrl + '/api/websites/' + siteId + '/stats?endAt=' + currentTimestamp + '&startAt=' + oneDayBefore;
+    axios.get(requestUrl, {headers: {"Authorization": requestToken}})
+    .then((response) => {stats.push(JSON.parse(response.data));})
+  }
+  getStats(process.env.UMAMI_LIST_ID);
+  getStats(process.env.UMAMI_WWW_ID);
+}
+
+bot.command('analysis', (ctx) => {
+  try{
+    analysisReply();
+    return ctx.reply(`
+<strong>开往网站统计数据（最近 24 小时）</strong>\n
+在过去 24 小时内，开往官网共收到了来自 ${stats[0]['uniques']['value']} 人的 ${stats[0]['pageviews']['value']} 次访问，开往列表共收到了来自 ${stats[1]['uniques']['value']} 人的 ${stats[1]['pageviews']['value']} 次访问。具体数据详见 Umami。`)
+  } catch (error) {
+    console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error))
+    return ctx.reply('坏掉了喵~ 更多信息可能包含在控制台输出中.');
+  }
+}
+)
 
 bot.command('query', async (ctx) => {
   const chatId = ctx.message.chat.id;
