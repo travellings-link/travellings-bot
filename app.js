@@ -18,7 +18,7 @@ const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
 const { auth, verify, readToken } = require('./modules/umami');
  
-global.version = "5.0";
+global.version = "5.1";
 global.time = function() {
     return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }

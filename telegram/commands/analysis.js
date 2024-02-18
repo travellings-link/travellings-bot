@@ -3,11 +3,8 @@ const { readToken } = require("../../modules/umami");
 const chalk = require("chalk");
 const dotenv = require('dotenv').config();
 
-const currentTimestamp = Date.now();
-const oneDayBefore = currentTimestamp - 86400000;
-
-const wwwUrl = process.env.UMAMI_API + '/websites/' + process.env.UMAMI_WWW_ID + '/stats?endAt=' + currentTimestamp + '&startAt=' + oneDayBefore;
-const listUrl = process.env.UMAMI_API + '/websites/' + process.env.UMAMI_LIST_ID + '/stats?endAt=' + currentTimestamp + '&startAt=' + oneDayBefore;
+const wwwUrl = process.env.UMAMI_API + '/websites/' + process.env.UMAMI_WWW_ID + '/stats?endAt=' + `${Date.now()}` + '&startAt=' + `${Date.now() - 86400000}`;
+const listUrl = process.env.UMAMI_API + '/websites/' + process.env.UMAMI_LIST_ID + '/stats?endAt=' + `${Date.now()}` + '&startAt=' + `${Date.now() - 86400000}`;
 
 module.exports = (bot) => {
     bot.command('analysis', async (ctx) => {
