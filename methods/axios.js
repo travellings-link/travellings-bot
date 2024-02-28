@@ -16,6 +16,7 @@ const moment = require('moment-timezone');
 const dotenv = require('dotenv').config();
 const { webModel } = require('../modules/sqlModel');
 const { sendMessage } = require('../modules/push');
+const {Op} = require("sequelize");
 
 const config = {
   headers: {
@@ -73,7 +74,13 @@ async function normalCheck(inputID) {
     }
   } else {
     // 如果未传入参数，则检查所有网站
-    webs = await webModel.findAll();
+    webs = await webModel.findAll({
+      where: {
+        status: {
+          [Op.notIn]: ['WAIT']
+        }
+      }
+    });
   }
 
   let total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
