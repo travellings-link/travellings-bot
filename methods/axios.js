@@ -100,7 +100,7 @@ async function normalCheck(inputID) {
       
       const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
 
-      if (response.status === 200 && response.data.includes('travelling')) {
+      if (response.status === 200 && (response.data.includes('travelling') || response.data.includes('开往'))) {
         web.status = 'RUN';
         web.failedReason = null;
         run++;

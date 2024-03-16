@@ -115,9 +115,10 @@ async function check(page, site, logStream) {
             fourxx++;
         } else {
             const pageContent = await page.content();
-            const include = pageContent.includes('travelling');
+            const includeEN = pageContent.includes('travelling');
+            const includeZH = pageContent.includes('开往');
 
-            if (include) {
+            if (includeEN || includeZH) {
                 await webModel.update({ status: 'RUN', failedReason: null }, { where: { id: site.id } });
                 console.log(chalk.blue(`[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> ${site.status} → RUN`));
                 logStream.write(`\n[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> ${site.status} → RUN`);
