@@ -6,8 +6,8 @@ const dotenv = require('dotenv').config();
 module.exports = (bot) => {
     bot.command('analysis', async (ctx) => {
         try {
-            const wwwUrl = process.env.UMAMI_API + '/websites/' + process.env.UMAMI_WWW_ID + '/stats?endAt=' + `${Date.now()}` + '&startAt=' + `${Date.now() - 86400000}`;
-            const listUrl = process.env.UMAMI_API + '/websites/' + process.env.UMAMI_LIST_ID + '/stats?endAt=' + `${Date.now()}` + '&startAt=' + `${Date.now() - 86400000}`;
+            const wwwUrl = process.env.UMAMI_API + '/teams/8aecda35-a3ad-4d39-acb6-26630b646582/websites/' + process.env.UMAMI_WWW_ID + '/stats?endAt=' + `${Date.now()}` + '&startAt=' + `${Date.now() - 86400000}`;
+            const listUrl = process.env.UMAMI_API + '/teams/8aecda35-a3ad-4d39-acb6-26630b646582/websites/' + process.env.UMAMI_LIST_ID + '/stats?endAt=' + `${Date.now()}` + '&startAt=' + `${Date.now() - 86400000}`;
             // 使用 readToken 函数获取 token 数据
             readToken(async (error, token) => {
                 if (error) {
