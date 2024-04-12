@@ -15,6 +15,9 @@ const cron = require('node-cron');
 const dotenv = require('dotenv').config();
 
 const filePath = path.join('./data', 'token.json');
+if (!fs.existsSync('./data')) {
+    fs.mkdirSync('./data');
+}
 
 function auth(user, passwd) {
     axios.post(process.env.UMAMI_API + '/auth/login', {
