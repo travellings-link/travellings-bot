@@ -31,6 +31,7 @@ const config = {
     "Sec-Fetch-Site": "none",
     "Sec-Fetch-User": "?1",
     "Upgrade-Insecure-Requests": "1",
+    "Referer": "https://www.travellings.cn/go.html",
     "User-Agent": "Mozilla/5.0 (compatible; Travellings Check Bot; +https://www.travellings.cn/docs/qa)"
   },
   timeout: process.env.LOAD_TIMEOUT * 1000,

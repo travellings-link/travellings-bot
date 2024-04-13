@@ -107,6 +107,9 @@ async function check(page, site, logStream) {
     try {
         await page.setViewport({ width: 1366, height: 768 });
         await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
+        await page.setExtraHTTPHeaders({
+            referer: 'https://www.travellings.cn/go.html' // 来自开往的 Referer
+        });
         await page.goto(site.link);
 
         if (site.status.toString() >= 500) {
