@@ -25,7 +25,6 @@ help(bot);
 check(bot);
 query(bot);
 version(bot);
-analysis(bot);
 
 bot.catch((error, ctx) => {
   console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error))
