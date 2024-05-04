@@ -56,7 +56,7 @@ async function screenshotByID(id) {
 async function screenshotByUrl(url) {
     try {
         const browser = await puppeteer.launch({
-            // headless: true,
+            headless: 'new',
             args: [
                 `--user-data-dir=${path.resolve(tmpPath)}`,
                 '--user-agent=Mozilla/5.0 (compatible; Travellings Check Bot; +https://www.travellings.cn/docs/qa)',

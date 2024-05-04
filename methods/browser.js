@@ -42,7 +42,7 @@ function spentTime(input) {
 async function browserCheck(input) {
     total = 0, run = 0, lost = 0, errorCount = 0, timeout = 0, fourxx = 0, fivexx = 0;
     const browser = await puppeteer.launch({
-        // headless: true,
+        headless: 'new',
         args: [
             '--disable-features=StylesWithCss=false',
             '--blink-settings=imagesEnabled=false',
