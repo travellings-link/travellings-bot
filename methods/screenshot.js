@@ -42,7 +42,7 @@ async function screenshotByID(id) {
         // await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
 
         await page.goto(web.link);
-        await sleep(5000);
+        await sleep(4500);
         const screenshotBuffer = await page.screenshot();
 
         await browser.close();
@@ -74,7 +74,7 @@ async function screenshotByUrl(url) {
         // await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
 
         await page.goto(url);
-        await sleep(5000);
+        await sleep(4500);
         const screenshotBuffer = await page.screenshot();
 
         await browser.close();
