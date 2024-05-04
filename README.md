@@ -1,5 +1,5 @@
 ## Travellings Bot
-[![wakatime](https://wakatime.com/badge/github/travellings-link/travellings-bot.svg)](https://wakatime.com/badge/github/travellings-link/travellings-bot)
+[![wakatime](https://wakatime.com/badge/github/travellings-link/travellings-bot.svg)](https://wakatime.com/badge/github/travellings-link/travellings-bot)  
 诶....？这个也要写 README 的吗  
 巡查和 Telegram Bot 融为一体  
 不代表最终品质
