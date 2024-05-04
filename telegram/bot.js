@@ -18,7 +18,6 @@ const help = require('./commands/help');
 const check = require('./commands/check');
 const query = require('./commands/query');
 const version = require('./commands/version');
-const analysis = require('./commands/analysis');
 
 bot.start((ctx) => ctx.reply('你好！有什么事喵？'));
 
