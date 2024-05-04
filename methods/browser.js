@@ -12,10 +12,11 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const { Op } = require('sequelize');
-const moment = require('moment-timezone');
 const puppeteer = require('puppeteer');
-const { webModel } = require('../modules/sqlModel');
+const moment = require('moment-timezone');
 const { sendMessage } = require('../modules/push');
+const { webModel } = require('../modules/sqlModel');
+const redisClient = require('../modules/redisClient');
 
 var total, run, lost, errorCount, timeout, fourxx, fivexx;
 
@@ -95,6 +96,10 @@ async function browserCheck(input) {
         await browser.close();
         const endTime = new Date();
         const input = (endTime - startTime) / 1000;
+        // 清除缓存
+        const cacheKey = await redisClient.keys('data:*');
+        redisClient.del(cacheKey);
+        
         const stats = `检测耗时：${spentTime(input)}｜总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`;
         console.log(chalk.cyan(`[${global.time()}] [BROWSER] [INFO] 检测完成 >> ${stats}`));
         logStream.write(`\n[${global.time()}] [BROWSER] [INFO] 检测完成 >> ${stats}`);
