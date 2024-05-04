@@ -18,6 +18,7 @@ const help = require('./commands/help');
 const check = require('./commands/check');
 const query = require('./commands/query');
 const version = require('./commands/version');
+const screenshot = require('./commands/screenshot');
 
 bot.start((ctx) => ctx.reply('你好！有什么事喵？'));
 
@@ -25,6 +26,7 @@ help(bot);
 check(bot);
 query(bot);
 version(bot);
+screenshot(bot);
 
 bot.catch((error, ctx) => {
   console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, error))
