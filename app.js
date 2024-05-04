@@ -16,7 +16,6 @@ const sql = require('./modules/sqlConfig');
 const { bot } = require('./telegram/bot');
 const axiosCheck = require('./methods/axios');
 const browserCheck = require('./methods/browser');
-const redisClient = require('./modules/redisClient');
  
 global.version = "5.5";
 global.time = function() {
