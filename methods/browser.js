@@ -97,9 +97,11 @@ async function browserCheck(input) {
         const endTime = new Date();
         const input = (endTime - startTime) / 1000;
         // 清除缓存
+        redisClient.connect();
         const cacheKey = await redisClient.keys('data:*');
         redisClient.del(cacheKey);
-        
+        redisClient.disconnect();
+
         const stats = `检测耗时：${spentTime(input)}｜总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`;
         console.log(chalk.cyan(`[${global.time()}] [BROWSER] [INFO] 检测完成 >> ${stats}`));
         logStream.write(`\n[${global.time()}] [BROWSER] [INFO] 检测完成 >> ${stats}`);
