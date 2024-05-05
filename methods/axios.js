@@ -156,6 +156,7 @@ async function normalCheck(inputID) {
   const input = (endTime - startTime) / 1000;
   // 清除 Redis 缓存
   try {
+    await axios.get(`${config.API_URL}/all`);
     await axios.delete(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
   } catch (e) {
     log.err(e, "AXIOS");
