@@ -15,7 +15,11 @@ const config = {
 
     // Redis
     REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
-    REDIS_PORT: process.env.REDIS_PORT || 6379
+    REDIS_PORT: process.env.REDIS_PORT || 6379,
+
+    // API
+    API_URL: process.env.API_URL || 'https://api.travellings.cn',
+    API_TOKEN: process.env.API_TOKEN || '114514'
 };
 
 module.exports = config;

@@ -12,12 +12,14 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const chalk = require('chalk');
+const config = require('../config');
 const { Op } = require("sequelize");
+const log = require('../modules/logger');
 const moment = require('moment-timezone');
 const dotenv = require('dotenv').config();
 const { sendMessage } = require('../modules/push');
 const { webModel } = require('../modules/sqlModel');
-const redisClient = require('../modules/redisClient');
+// const redisClient = require('../modules/redisClient');
 
 const config = {
   headers: {
@@ -153,10 +155,15 @@ async function normalCheck(inputID) {
   const endTime = new Date();
   const input = (endTime - startTime) / 1000;
   // 清除 Redis 缓存
-  redisClient.connect();
-  const cacheKey = await redisClient.keys('data:*');
-  await redisClient.del(cacheKey);
-  redisClient.disconnect();
+  try {
+    await axios.delete(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
+  } catch (e) {
+    log.err(e, "AXIOS");
+  }
+  // redisClient.connect();
+  // const cacheKey = await redisClient.keys('data:*');
+  // await redisClient.del(cacheKey);
+  // redisClient.disconnect();
 
   const stats = `检测耗时：${spentTime(input)}｜总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`;
   console.log(chalk.cyan(`[${global.time()}] [AXIOS] [INFO] 检测完成 >> ${stats}`));
