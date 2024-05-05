@@ -100,7 +100,7 @@ async function browserCheck(input) {
         const input = (endTime - startTime) / 1000;
           // 清除 Redis 缓存
         try {
-          await axios.post(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
+          await axios.delete(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
         } catch (e) {
           log.err(e, "AXIOS");
         }
