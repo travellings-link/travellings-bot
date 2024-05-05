@@ -21,7 +21,7 @@ const { sendMessage } = require('../modules/push');
 const { webModel } = require('../modules/sqlModel');
 // const redisClient = require('../modules/redisClient');
 
-const config = {
+const axiosConfig = {
   headers: {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Encoding": "gzip, deflate, br",
@@ -93,7 +93,7 @@ async function normalCheck(inputID) {
     total++;
 
     try {
-      const response = await axios.get(web.link, config);
+      const response = await axios.get(web.link, axiosConfig);
       let data = response.data;
 
       if (Buffer.isBuffer(data)) {
