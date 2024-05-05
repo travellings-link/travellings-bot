@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
+const axios = require('axios');
 const { Op } = require('sequelize');
 const config = require('../config');
 const puppeteer = require('puppeteer');
@@ -103,7 +104,7 @@ async function browserCheck(input) {
           await axios.get(`${config.API_URL}/all`);
           await axios.delete(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
         } catch (e) {
-          log.err(e, "AXIOS");
+          log.err(e, "BROWSER");
         }
         // redisClient.connect();
         // const cacheKey = await redisClient.keys('data:*');
