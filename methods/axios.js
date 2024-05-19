@@ -159,7 +159,7 @@ async function normalCheck(inputID) {
     await axios.get(`${config.API_URL}/all`);
     await axios.delete(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
   } catch (e) {
-    log.err(e, "AXIOS");
+    log.err(e, "REDIS");
   }
   // redisClient.connect();
   // const cacheKey = await redisClient.keys('data:*');

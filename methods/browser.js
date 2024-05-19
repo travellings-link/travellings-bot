@@ -57,6 +57,11 @@ async function browserCheck(input) {
         ]
     });
     const page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
+    await page.setExtraHTTPHeaders({
+        referer: 'https://www.travellings.cn/go.html' // 来自开往的 Referer
+    });
     const startTime = new Date();
     const logStream = fs.createWriteStream(path.join(logPath, `${moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH-mm-ss')}_Browser.log`), { flags: 'a' });
 
@@ -104,7 +109,7 @@ async function browserCheck(input) {
           await axios.get(`${config.API_URL}/all`);
           await axios.delete(`${config.API_URL}/action/purgeCache`, { headers: { Cookie: `_tlogin=${config.API_TOKEN}` } })
         } catch (e) {
-          log.err(e, "BROWSER");
+          log.err(e, "REDIS");
         }
         // redisClient.connect();
         // const cacheKey = await redisClient.keys('data:*');
@@ -121,11 +126,6 @@ async function browserCheck(input) {
 
 async function check(page, site, logStream) {
     try {
-        await page.setViewport({ width: 1920, height: 1080 });
-        await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
-        await page.setExtraHTTPHeaders({
-            referer: 'https://www.travellings.cn/go.html' // 来自开往的 Referer
-        });
         await page.goto(site.link);
 
         if (site.status.toString() >= 500) {
