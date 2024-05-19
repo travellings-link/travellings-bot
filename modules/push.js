@@ -10,10 +10,11 @@
 // 2024/01/16 04:38 CST
 
 const chalk = require('chalk');
+const config = require('../config');
 const { Telegraf } = require('telegraf');
 const dotenv = require('dotenv').config();
 
-const bot = new Telegraf(process.env.BOT_TOKEN, { telegram: { apiRoot: process.env.BOT_API } });
+const bot = new Telegraf(process.env.BOT_TOKEN, { telegram: { apiRoot: config.BOT_API } });
 
 async function sendMessage(message) {
   try {
