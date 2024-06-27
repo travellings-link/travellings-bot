@@ -127,6 +127,7 @@ async function browserCheck(input) {
 async function check(page, site, logStream) {
     try {
         await page.goto(site.link);
+        await page.waitForNavigation({ waitUntil: 'networkidle0' });
 
         if (site.status.toString() >= 500) {
             console.log(chalk.blue(`[${global.time()}] [BROWSER] [INFO] ID >> ${site.id}, Result >> 不做修改`));
