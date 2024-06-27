@@ -74,7 +74,7 @@ async function screenshotByUrl(url) {
         // await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
 
         await page.goto(url);
-        await sleep(4500);
+        await page.waitForNavigation({ waitUntil: 'networkidle0' });
         const screenshotBuffer = await page.screenshot();
 
         await browser.close();
