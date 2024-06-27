@@ -58,7 +58,7 @@ async function browserCheck(input) {
     });
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
-    await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
+    // await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
     await page.setExtraHTTPHeaders({
         referer: 'https://www.travellings.cn/go.html' // 来自开往的 Referer
     });
