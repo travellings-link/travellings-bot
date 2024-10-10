@@ -1,0 +1,39 @@
+{
+	"compilerOptions": {
+		"incremental": true,
+
+		"target": "ESNext",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"rootDir": "./src",
+		"baseUrl": "./src",
+		"paths": {},
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"checkJs": true,
+		"outDir": "./dist",
+
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"allowUnusedLabels": false,
+		"allowUnreachableCode": false,
+
+		"skipLibCheck": true
+	},
+	"include": ["./src/**/*"],
+	"exclude": ["node_modules", "./dist"]
+}
