@@ -26,13 +26,13 @@ export const config = {
 		: 15,
 
 	// TG Bot
-	BOT_API: process.env["BOT_API"] || "https://botapi.xcnya.cn",
-	BOT_CHATID: process.env["BOT_CHATID"]
-		? parseInt(process.env["BOT_CHATID"])
+	TG_BOT_API: process.env["TG_BOT_API"] || "https://botapi.xcnya.cn",
+	TG_BOT_CHATID: process.env["TG_BOT_CHATID"]
+		? parseInt(process.env["TG_BOT_CHATID"])
 		: 5502448506,
-	BOT_TOKEN: process.env["BOT_TOKEN"] || "",
-	ALLOW_CHATID: process.env["ALLOW_CHATID"]
-		? process.env["ALLOW_CHATID"].split(",").map((id) => parseInt(id))
+	TG_BOT_TOKEN: process.env["TG_BOT_TOKEN"] || "",
+	TG_ALLOW_CHATID: process.env["TG_ALLOW_CHATID"]
+		? process.env["TG_ALLOW_CHATID"].split(",").map((id) => parseInt(id))
 		: [5502448506],
 
 	// Redis
