@@ -13,6 +13,7 @@ export class TelegramContext implements Context {
 	constructor(ctx: TgContext) {
 		this.ctx = ctx;
 	}
+
 	async getMessageText(): Promise<string> {
 		if (this.ctx.text === undefined) {
 			throw new Error("No text message contained in context.");
@@ -27,7 +28,7 @@ export class TelegramContext implements Context {
 	}
 	async getSenderId(): Promise<number> {
 		if (this.ctx.message === undefined) {
-			throw new Error("Cannot get SenderID without sender.");
+			throw new Error("Cannot get SenderID without message.");
 		}
 		return this.ctx.message.from.id;
 	}
@@ -43,11 +44,17 @@ export class TelegramContext implements Context {
 	async reply(message: string): Promise<void> {
 		this.ctx.reply(message);
 	}
+	async replyWithRichText(message: string): Promise<void> {
+		this.ctx.reply(message, {
+			parse_mode: "HTML",
+			link_preview_options: { is_disabled: true },
+		});
+	}
 }
 
 export class TelegramAdapter implements BotAdapter {
 	readonly bot: Telegraf;
-	onErrorCallback: ErrorProcesser = (err, ctx) => {
+	onErrorCallback: ErrorProcesser = async (err, ctx) => {
 		ctx.reply(err.message);
 	};
 	onError(onErrorCallback: ErrorProcesser): void {

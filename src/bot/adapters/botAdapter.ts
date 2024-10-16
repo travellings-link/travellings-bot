@@ -1,5 +1,5 @@
-export type MessageProcesser = (ctx: Context) => void;
-export type ErrorProcesser = (err: Error, ctx: Context) => void;
+export type MessageProcesser = (ctx: Context) => Promise<void>;
+export type ErrorProcesser = (err: Error, ctx: Context) => Promise<void>;
 
 export interface Context {
 	getMessageText(): Promise<string>;
@@ -8,6 +8,7 @@ export interface Context {
 	isAdmin(): Promise<boolean>;
 	isAllowed(): Promise<boolean>;
 	reply(message: string): Promise<void>;
+	replyWithRichText(message: string): Promise<void>;
 }
 
 export interface BotAdapter {
