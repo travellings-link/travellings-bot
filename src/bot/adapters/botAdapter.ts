@@ -1,0 +1,20 @@
+export type MessageProcesser = (ctx: Context) => void;
+export type ErrorProcesser = (err: Error, ctx: Context) => void;
+
+export interface Context {
+	getMessageText(): Promise<string>;
+	getChatId(): Promise<number>;
+	getSenderId(): Promise<number>;
+	isAdmin(): Promise<boolean>;
+	isAllowed(): Promise<boolean>;
+	reply(message: string): Promise<void>;
+}
+
+export interface BotAdapter {
+	boardcastMessage(message: string): Promise<void>;
+	registerCommand(
+		commandName: string,
+		onMessageCallback: MessageProcesser
+	): void;
+	onError(onErrorCallback: ErrorProcesser): void;
+}
