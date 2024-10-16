@@ -77,6 +77,17 @@ export class Logger {
 		}
 	}
 
+	ok(msg: string, who: string) {
+		if (this.logLevel > LOG_INFO_LEVEL) {
+			return;
+		}
+		const log = `[${time()}] [${who}] [OK] ${msg}`;
+		console.log(chalk.green(log));
+		if (this.enableWrite) {
+			this.logStream!.write("\n" + log);
+		}
+	}
+
 	debug(msg: string, who: string) {
 		if (this.logLevel > LOG_DEBUG_LEVEL) {
 			return;
