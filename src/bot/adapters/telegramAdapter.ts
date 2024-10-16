@@ -39,7 +39,7 @@ export class TelegramContext implements Context {
 	}
 	async isAllowed(): Promise<boolean> {
 		const chatId = await this.getChatId();
-		return config.ALLOW_CHATID.includes(chatId);
+		return config.TG_ALLOW_CHATID.includes(chatId);
 	}
 	async reply(message: string): Promise<void> {
 		this.ctx.reply(message);
@@ -64,8 +64,8 @@ export class TelegramAdapter implements BotAdapter {
 		this.onErrorCallback = onErrorCallback;
 	}
 	constructor() {
-		this.bot = new Telegraf(config.BOT_TOKEN, {
-			telegram: { apiRoot: config.BOT_API },
+		this.bot = new Telegraf(config.TG_BOT_TOKEN, {
+			telegram: { apiRoot: config.TG_BOT_API },
 		});
 		this.bot
 			.launch()
@@ -93,7 +93,7 @@ export class TelegramAdapter implements BotAdapter {
 
 	async boardcastMessage(message: string): Promise<void> {
 		try {
-			await this.bot.telegram.sendMessage(config.BOT_CHATID, message, {
+			await this.bot.telegram.sendMessage(config.TG_BOT_CHATID, message, {
 				parse_mode: "HTML",
 			});
 		} catch (error) {
