@@ -9,6 +9,7 @@ export interface Context {
 	isAllowed(): Promise<boolean>;
 	reply(message: string): Promise<void>;
 	replyWithRichText(message: string): Promise<void>;
+	replyWithPhoto(photo: Buffer): Promise<void>;
 }
 
 export interface BotAdapter {

@@ -50,6 +50,9 @@ export class TelegramContext implements Context {
 			link_preview_options: { is_disabled: true },
 		});
 	}
+	async replyWithPhoto(photo: Buffer): Promise<void> {
+		this.ctx.replyWithPhoto({ source: photo });
+	}
 }
 
 export class TelegramAdapter implements BotAdapter {
