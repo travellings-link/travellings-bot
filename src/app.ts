@@ -9,30 +9,30 @@
 // By BLxcwg666 <huixcwg@gmail.com>
 // 2024/01/16 18:10 CST
 
-import chalk from "chalk";
 import { schedule } from "node-cron";
-import moment from "moment-timezone";
 import sql from "./modules/sqlConfig";
-import { bot } from "./telegram/bot";
 import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
+import { botManager } from "./bot/botManager";
+import { TelegramAdapter } from "./bot/adapters/telegramAdapter";
+import { help } from "./bot/commands/help";
+import { check } from "./bot/commands/check";
+import { query } from "./bot/commands/query";
+import { version } from "./bot/commands/version";
+import { screenshot } from "./bot/commands/screenshot";
+import { logger } from "./modules/typedLogger";
+import { requireAdmin } from "./bot/middlewares/requireAdmin";
+import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
 
 export const global = {
-	version: "6.0.0",
-	time: function () {
-		return moment().tz("Asia/Shanghai").format("YYYY-MM-DD HH:mm:ss");
-	},
+	version: "7.0.0",
 };
 
 async function checkAll() {
-	await console.log(
-		chalk.green(`[${global.time()}] [APP] [INFO] ✓ 开始巡查站点`)
-	);
+	logger.info("✓ 开始巡查站点", "APP");
 	await axiosCheck();
 	await browserCheck();
-	console.log(
-		chalk.green(`[${global.time()}] [APP] [INFO] △ 检测完成，Sleep.`)
-	);
+	logger.ok("△ 检测完成，Sleep.", "APP");
 }
 
 console.log(`\n
@@ -45,28 +45,28 @@ _____                    _ _ _                     ____ _               _       
 
           Copyright © 2020-2024 Travellings Project. All rights reserved.  //  Version ${global.version}
 `);
-console.log(chalk.cyan(`[${global.time()}] [APP] [INFO] 尝试连接到数据库...`));
+logger.info("尝试连接到数据库...", "APP");
 sql
 	.sync()
 	.then(() => {
-		console.log(
-			chalk.green(`[${global.time()}] [APP] [OK] 成功连接到数据库 ~`)
-		);
+		logger.ok("成功连接到数据库 ~", "APP");
 	})
-	.catch((err) =>
-		console.log(chalk.red(`[${global.time()}] [APP] [ERROR]`, err))
-	); // 数据库同步 + 错误处理
-bot
-	.launch()
-	.then(() => {
-		console.log(
-			chalk.green(`[${global.time()}] [TBOT] [OK] Telegram Bot 已启动 ~`)
-		);
-	})
-	.catch((err) =>
-		console.log(chalk.red(`[${global.time()}] [TBOT] [ERROR]`, err))
-	);
-console.log(chalk.cyan(`[${global.time()}] [APP] [INFO] 没到点呢，小睡一会 ~`));
+	.catch((err) => {
+		logger.err((err as Error).message, "APP");
+	}); // 数据库同步 + 错误处理
+
+botManager.registerAdapter(new TelegramAdapter());
+
+botManager.registerCommand("help", help);
+botManager.registerCommand("version", version);
+botManager.registerCommand("query", requireSpecifiedChat(query));
+botManager.registerCommand("check", requireSpecifiedChat(requireAdmin(check)));
+botManager.registerCommand(
+	"screenshot",
+	requireSpecifiedChat(requireAdmin(screenshot))
+);
+
+logger.info("没到点呢，小睡一会 ~", "APP");
 
 schedule("0 4 * * *", () => {
 	checkAll();
