@@ -9,7 +9,7 @@ import fs, { WriteStream } from "fs";
 import path from "path";
 import { config } from "../config";
 
-function time() {
+export function time() {
 	return moment.tz("Asia/Shanghai").format("YYYY-MM-DD HH:mm:ss");
 }
 

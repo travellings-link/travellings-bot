@@ -17,8 +17,7 @@ import { Op } from "sequelize";
 import { global } from "../app";
 import { config } from "../config";
 import { launch, Page } from "puppeteer";
-import { Logger, logger } from "../modules/typedLogger";
-import { sendMessage } from "../modules/push";
+import { Logger, logger, time } from "../modules/typedLogger";
 import { WebModel } from "../modules/sqlModel";
 
 let total = 0,
@@ -123,7 +122,7 @@ export default async function browserCheck(input?: number) {
 		sendMessage(
 			`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Browser\n持续了 ${spentTime(
 				input
-			)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${global.time()} CST\n备注：仅巡查 LOST 和 ERROR 状态的站点`
+			)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：仅巡查 LOST 和 ERROR 状态的站点`
 		);
 	}
 }

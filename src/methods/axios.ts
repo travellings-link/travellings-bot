@@ -17,7 +17,9 @@ import log from "../modules/logger";
 import { global } from "../app";
 import { sendMessage } from "../modules/push";
 import { WebModel } from "../modules/sqlModel";
-import { Logger } from "../modules/typedLogger";
+import { Logger, time } from "../modules/typedLogger";
+
+import { botManager } from "bot/botManager";
 
 const axiosConfig = {
 	headers: {
@@ -181,6 +183,6 @@ export default async function normalCheck(inputID?: number) {
 	sendMessage(
 		`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Axios\n持续了 ${spentTime(
 			input
-		)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${global.time()} CST\n备注：巡查所有站点`
+		)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：巡查所有站点`
 	);
 }
