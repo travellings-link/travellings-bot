@@ -21,6 +21,8 @@ import { query } from "bot/commands/query";
 import { version } from "bot/commands/version";
 import { screenshot } from "bot/commands/screenshot";
 import { logger } from "modules/typedLogger";
+import { requireAdmin } from "bot/middlewares/requireAdmin";
+import { requireSpecifiedChat } from "bot/middlewares/requireSpecifiedChat";
 
 export const global = {
 	version: "7.0.0",
@@ -56,10 +58,13 @@ sql
 botManager.registerAdapter(new TelegramAdapter());
 
 botManager.registerCommand("help", help);
-botManager.registerCommand("check", check);
-botManager.registerCommand("query", query);
 botManager.registerCommand("version", version);
-botManager.registerCommand("screenshot", screenshot);
+botManager.registerCommand("query", requireSpecifiedChat(query));
+botManager.registerCommand("check", requireSpecifiedChat(requireAdmin(check)));
+botManager.registerCommand(
+	"screenshot",
+	requireSpecifiedChat(requireAdmin(screenshot))
+);
 
 logger.info("没到点呢，小睡一会 ~", "APP");
 
