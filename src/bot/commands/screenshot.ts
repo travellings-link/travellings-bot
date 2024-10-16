@@ -1,8 +1,8 @@
 import { isUrl } from "../../utils/isUrl";
 import { screenshotByID, screenshotByUrl } from "../../methods/screenshot";
-import { MessageProcesser } from "bot/adapters/botAdapter";
+import { MessageProcessor } from "bot/adapters/botAdapter";
 
-export const screenshot: MessageProcesser = async (ctx) => {
+export const screenshot: MessageProcessor = async (ctx) => {
 	const args = (await ctx.getMessageText()).split(" ");
 	const input = args[1];
 

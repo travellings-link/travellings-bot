@@ -1,6 +1,6 @@
-import { MessageProcesser } from "bot/adapters/botAdapter";
+import { MessageProcessor } from "bot/adapters/botAdapter";
 
-export const help: MessageProcesser = async (ctx) => {
+export const help: MessageProcessor = async (ctx) => {
 	ctx.replyWithRichText(
 		`
 <strong>帮助菜单</strong>\n

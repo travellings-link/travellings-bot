@@ -1,5 +1,5 @@
-export type MessageProcesser = (ctx: Context) => Promise<void>;
-export type ErrorProcesser = (err: Error, ctx: Context) => Promise<void>;
+export type MessageProcessor = (ctx: Context) => Promise<void>;
+export type ErrorProcessor = (err: Error, ctx: Context) => Promise<void>;
 
 export interface Context {
 	getMessageText(): Promise<string>;
@@ -16,7 +16,7 @@ export interface BotAdapter {
 	boardcastMessage(message: string): Promise<void>;
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcesser
+		onMessageCallback: MessageProcessor
 	): void;
-	onError(onErrorCallback: ErrorProcesser): void;
+	onError(onErrorCallback: ErrorProcessor): void;
 }

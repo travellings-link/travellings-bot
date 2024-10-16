@@ -2,8 +2,8 @@ import { Telegraf, Context as TgContext } from "telegraf";
 import {
 	BotAdapter,
 	Context,
-	ErrorProcesser,
-	MessageProcesser,
+	ErrorProcessor,
+	MessageProcessor,
 } from "./botAdapter";
 import { config } from "../../config";
 import { logger } from "modules/typedLogger";
@@ -57,10 +57,10 @@ export class TelegramContext implements Context {
 
 export class TelegramAdapter implements BotAdapter {
 	readonly bot: Telegraf;
-	onErrorCallback: ErrorProcesser = async (err, ctx) => {
+	onErrorCallback: ErrorProcessor = async (err, ctx) => {
 		ctx.reply(err.message);
 	};
-	onError(onErrorCallback: ErrorProcesser): void {
+	onError(onErrorCallback: ErrorProcessor): void {
 		this.onErrorCallback = onErrorCallback;
 	}
 	constructor() {
@@ -83,7 +83,7 @@ export class TelegramAdapter implements BotAdapter {
 	}
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcesser
+		onMessageCallback: MessageProcessor
 	): void {
 		this.bot.command(commandName, (ctx) => {
 			const c = new TelegramContext(ctx);

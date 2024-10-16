@@ -1,7 +1,7 @@
 import {
 	BotAdapter,
-	ErrorProcesser,
-	MessageProcesser,
+	ErrorProcessor,
+	MessageProcessor,
 } from "./adapters/botAdapter";
 
 class BotManager implements BotAdapter {
@@ -11,13 +11,13 @@ class BotManager implements BotAdapter {
 	}
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcesser
+		onMessageCallback: MessageProcessor
 	): void {
 		this.adapters.forEach((a) => {
 			a.registerCommand(commandName, onMessageCallback);
 		});
 	}
-	onError(onErrorCallback: ErrorProcesser): void {
+	onError(onErrorCallback: ErrorProcessor): void {
 		this.adapters.forEach((a) => {
 			a.onError(onErrorCallback);
 		});

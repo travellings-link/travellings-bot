@@ -1,7 +1,7 @@
 import { global } from "../../app";
-import { MessageProcesser } from "bot/adapters/botAdapter";
+import { MessageProcessor } from "bot/adapters/botAdapter";
 
-export const version: MessageProcesser = async (ctx) => {
+export const version: MessageProcessor = async (ctx) => {
 	ctx.replyWithRichText(
 		`
 	<strong>Travellings Bot</strong>

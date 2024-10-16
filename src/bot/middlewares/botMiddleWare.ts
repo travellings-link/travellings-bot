@@ -1,3 +1,3 @@
-import { MessageProcesser } from "bot/adapters/botAdapter";
+import { MessageProcessor } from "bot/adapters/botAdapter";
 
-export type Middleware = (next: MessageProcesser) => MessageProcesser;
+export type Middleware = (next: MessageProcessor) => MessageProcessor;
