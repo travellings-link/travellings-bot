@@ -5,7 +5,7 @@ import {
 } from "./adapters/botAdapter";
 
 class BotManager implements BotAdapter {
-	adapters: BotAdapter[] = [];
+	private adapters: BotAdapter[] = [];
 	registerAdapter(adapter: BotAdapter) {
 		this.adapters.push(adapter);
 	}

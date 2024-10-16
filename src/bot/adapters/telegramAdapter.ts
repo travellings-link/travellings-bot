@@ -9,7 +9,7 @@ import { config } from "../../config";
 import { logger } from "modules/typedLogger";
 
 export class TelegramContext implements Context {
-	readonly ctx: TgContext;
+	private readonly ctx: TgContext;
 	constructor(ctx: TgContext) {
 		this.ctx = ctx;
 	}
