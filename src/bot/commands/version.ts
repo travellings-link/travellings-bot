@@ -1,5 +1,5 @@
 import { global } from "../../app";
-import { MessageProcessor } from "bot/adapters/botAdapter";
+import { MessageProcessor } from "../adapters/botAdapter";
 
 export const version: MessageProcessor = async (ctx) => {
 	ctx.replyWithRichText(

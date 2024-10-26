@@ -6,7 +6,7 @@ import {
 	MessageProcessor,
 } from "./botAdapter";
 import { config } from "../../config";
-import { logger } from "modules/typedLogger";
+import { logger } from "../../modules/typedLogger";
 
 export class TelegramContext implements Context {
 	private readonly ctx: TgContext;

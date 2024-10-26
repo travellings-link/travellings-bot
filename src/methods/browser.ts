@@ -19,7 +19,7 @@ import { launch, Page } from "puppeteer";
 import { Logger, logger, time } from "../modules/typedLogger";
 import { WebModel } from "../modules/sqlModel";
 
-import { botManager } from "bot/botManager";
+import { botManager } from "../bot/botManager";
 
 let total = 0,
 	run = 0,

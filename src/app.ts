@@ -13,16 +13,16 @@ import { schedule } from "node-cron";
 import sql from "./modules/sqlConfig";
 import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
-import { botManager } from "bot/botManager";
-import { TelegramAdapter } from "bot/adapters/telegramAdapter";
-import { help } from "bot/commands/help";
-import { check } from "bot/commands/check";
-import { query } from "bot/commands/query";
-import { version } from "bot/commands/version";
-import { screenshot } from "bot/commands/screenshot";
-import { logger } from "modules/typedLogger";
-import { requireAdmin } from "bot/middlewares/requireAdmin";
-import { requireSpecifiedChat } from "bot/middlewares/requireSpecifiedChat";
+import { botManager } from "./bot/botManager";
+import { TelegramAdapter } from "./bot/adapters/telegramAdapter";
+import { help } from "./bot/commands/help";
+import { check } from "./bot/commands/check";
+import { query } from "./bot/commands/query";
+import { version } from "./bot/commands/version";
+import { screenshot } from "./bot/commands/screenshot";
+import { logger } from "./modules/typedLogger";
+import { requireAdmin } from "./bot/middlewares/requireAdmin";
+import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
 
 export const global = {
 	version: "7.0.0",

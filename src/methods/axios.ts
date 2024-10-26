@@ -17,7 +17,7 @@ import log from "../modules/logger";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 
-import { botManager } from "bot/botManager";
+import { botManager } from "../bot/botManager";
 
 const axiosConfig = {
 	headers: {

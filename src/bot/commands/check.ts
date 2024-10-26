@@ -1,7 +1,7 @@
-import { MessageProcessor } from "bot/adapters/botAdapter";
-import { WebModel } from "modules/sqlModel";
-import axiosCheck from "methods/axios";
-import browserCheck from "methods/browser";
+import { MessageProcessor } from "../adapters/botAdapter";
+import { WebModel } from "../../modules/sqlModel";
+import axiosCheck from "../../methods/axios";
+import browserCheck from "../../methods/browser";
 
 export const check: MessageProcessor = async (ctx) => {
 	const args = (await ctx.getMessageText()).split(" ");
