@@ -4,7 +4,8 @@
 		"fix": "eslint src --fix",
 		"dev": "concurrently \"tsc -w\" \"node --watch dist/app.js\"",
 		"build": "tsc",
-		"prebuild": "eslint src"
+		"prebuild": "eslint src",
+		"serve": "node dist/app.js"
 	},
 	"dependencies": {
 		"axios": "^1.6.5",
