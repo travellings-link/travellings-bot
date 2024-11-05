@@ -3,8 +3,16 @@ import {
 	ErrorProcessor,
 	MessageProcessor,
 } from "./adapters/botAdapter";
+import { RichTextMessage } from "./utils/richTextMessage";
 
 class BotManager implements BotAdapter {
+	async boardcastRichTextMessage(message: RichTextMessage): Promise<void> {
+		await Promise.all(
+			this.adapters.map((a) => {
+				return a.boardcastRichTextMessage(message);
+			})
+		);
+	}
 	private adapters: BotAdapter[] = [];
 	registerAdapter(adapter: BotAdapter) {
 		this.adapters.push(adapter);
