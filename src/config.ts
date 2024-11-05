@@ -35,6 +35,13 @@ export const config = {
 		? process.env["TG_ALLOW_CHATID"].split(",").map((id) => parseInt(id))
 		: [5502448506],
 
+	// Lark Bot
+	LARK_BOT_APPID: process.env["LARK_BOT_APPID"] || "",
+	LARK_BOT_SECRET: process.env["LARK_BOT_SECRET"] || "",
+	LARK_CHATID: process.env["LARK_CHATID"]
+		? process.env["LARK_CHATID"].split(",")
+		: ["oc_bcc115f23153490d907d7f6793e6fdc0"],
+
 	// Redis
 	REDIS_HOST: process.env["REDIS_HOST"] || "127.0.0.1",
 	REDIS_PORT: process.env["REDIS_PORT"]
