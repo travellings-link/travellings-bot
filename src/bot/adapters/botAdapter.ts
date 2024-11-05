@@ -1,3 +1,5 @@
+import { RichTextMessage } from "bot/utils/richTextMessage";
+
 export type MessageProcessor = (ctx: Context) => Promise<void>;
 export type ErrorProcessor = (err: Error, ctx: Context) => Promise<void>;
 
@@ -14,6 +16,7 @@ export interface Context {
 
 export interface BotAdapter {
 	boardcastMessage(message: string): Promise<void>;
+	boardcastRichTextMessage(message: RichTextMessage): Promise<void>;
 	registerCommand(
 		commandName: string,
 		onMessageCallback: MessageProcessor

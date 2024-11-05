@@ -7,6 +7,11 @@ import {
 } from "./botAdapter";
 import { config } from "../../config";
 import { logger } from "../../modules/typedLogger";
+import {
+	Link,
+	RichTextMessage,
+	Text as RichText,
+} from "bot/utils/richTextMessage";
 
 export class TelegramContext implements Context {
 	private readonly ctx: TgContext;
@@ -89,6 +94,41 @@ export class TelegramAdapter implements BotAdapter {
 			const c = new TelegramContext(ctx);
 			onMessageCallback(c);
 		});
+	}
+
+	async boardcastRichTextMessage(message: RichTextMessage): Promise<void> {
+		this.boardcastMessage(
+			message
+				.map((para) =>
+					para
+						.map((block) => {
+							switch (block.type) {
+								case "link":
+									return `<a href="${(block as Link).href}">${
+										(block as Link).content
+									}</a>`;
+								case "text": {
+									const txt = block as RichText;
+									let ret = txt.content;
+									if (txt.bold) {
+										ret = `<strong>${ret}</strong>`;
+									}
+									if (txt.italic) {
+										ret = `<em>${ret}</em>`;
+									}
+									if (txt.underline) {
+										ret = `<u>${ret}</u>`;
+									}
+									return ret;
+								}
+								default:
+									return "";
+							}
+						})
+						.join("")
+				)
+				.join("\n")
+		);
 	}
 
 	async boardcastMessage(message: string): Promise<void> {
