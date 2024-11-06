@@ -2,7 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { launch } from "puppeteer";
-import logger from "../modules/logger";
+import { logger } from "../modules/typedLogger";
 import { WebModel } from "../modules/sqlModel";
 import { config } from "../config";
 
@@ -49,7 +49,9 @@ async function screenshotByID(id: number) {
 		await browser.close();
 		return screenshotBuffer;
 	} catch (e) {
-		logger.err(e, "SCREENSHOT");
+		if ((e as Error)["message"] !== undefined) {
+			logger.err((e as Error).message, "SCREENSHOT");
+		}
 		throw new Error("出错了喵~ 更多信息可能包含在控制台中~");
 	}
 }
@@ -81,7 +83,9 @@ async function screenshotByUrl(url: string) {
 		await browser.close();
 		return screenshotBuffer;
 	} catch (e) {
-		logger.err(e, "SCREENSHOT");
+		if ((e as Error)["message"] !== undefined) {
+			logger.err((e as Error).message, "SCREENSHOT");
+		}
 		throw new Error("出错了喵~ 更多信息可能包含在控制台中~");
 	}
 }
