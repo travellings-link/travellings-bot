@@ -23,7 +23,7 @@ import { screenshot } from "./bot/commands/screenshot";
 import { logger } from "./modules/typedLogger";
 import { requireAdmin } from "./bot/middlewares/requireAdmin";
 import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
-import { LarkAdapter } from "bot/adapters/larkAdapter";
+import { LarkAdapter } from "./bot/adapters/larkAdapter";
 
 export const global = {
 	version: "7.0.0",
