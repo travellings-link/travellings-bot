@@ -153,8 +153,10 @@ export default async function browserCheck(input?: number) {
 
 async function check(page: Page, site: WebModel, log: Logger) {
 	try {
-		await page.goto(site.link);
-		await page.waitForNavigation({ waitUntil: "networkidle0" });
+		await Promise.all([
+			page.goto(site.link),
+			page.waitForNavigation({ waitUntil: "networkidle0" }),
+		]);
 
 		if (parseInt(site.status) >= 500) {
 			log.info(`ID >> ${site.id}, Result >> 不做修改`, "BROWSER");
