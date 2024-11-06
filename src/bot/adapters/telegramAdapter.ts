@@ -25,25 +25,25 @@ export class TelegramContext implements Context {
 		}
 		return this.ctx.text;
 	}
-	async getChatId(): Promise<number> {
+	async getChatId(): Promise<string> {
 		if (this.ctx.chat === undefined) {
 			throw new Error("Cannot get ChatID in a non-chat context.");
 		}
-		return this.ctx.chat.id;
+		return this.ctx.chat.id.toString();
 	}
-	async getSenderId(): Promise<number> {
+	async getSenderId(): Promise<string> {
 		if (this.ctx.message === undefined) {
 			throw new Error("Cannot get SenderID without message.");
 		}
-		return this.ctx.message.from.id;
+		return this.ctx.message.from.id.toString();
 	}
 	async isAdmin(): Promise<boolean> {
-		const sender = await this.getSenderId();
+		const sender = parseInt(await this.getSenderId());
 		const admins = await this.ctx.getChatAdministrators();
 		return admins.some((u) => u.user.id === sender);
 	}
 	async isAllowed(): Promise<boolean> {
-		const chatId = await this.getChatId();
+		const chatId = parseInt(await this.getChatId());
 		return config.TG_ALLOW_CHATID.includes(chatId);
 	}
 	async reply(message: string): Promise<void> {
