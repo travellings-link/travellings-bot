@@ -44,23 +44,24 @@ export class LarkContext implements Context {
 		return this.sender_id;
 	}
 	async isAdmin(): Promise<boolean> {
-		return await this.client.im.v1.chat
-			.get({
-				path: {
-					chat_id: await this.getChatId(),
-				},
-			})
-			.then((ret) => {
-				if (ret.code !== 0) {
-					logger.err(ret.msg!, "LarkBot");
-					return false;
-				}
-				logger.debug(JSON.stringify(ret), "LarkBot");
-				return (
-					ret.data?.user_manager_id_list?.includes(this.sender_id) ||
-					ret.data?.owner_id === this.sender_id
-				);
-			});
+		return true;
+		// return await this.client.im.v1.chat
+		// 	.get({
+		// 		path: {
+		// 			chat_id: await this.getChatId(),
+		// 		},
+		// 	})
+		// 	.then((ret) => {
+		// 		if (ret.code !== 0) {
+		// 			logger.err(ret.msg!, "LarkBot");
+		// 			return false;
+		// 		}
+		// 		logger.debug(JSON.stringify(ret), "LarkBot");
+		// 		return (
+		// 			ret.data?.user_manager_id_list?.includes(this.sender_id) ||
+		// 			ret.data?.owner_id === this.sender_id
+		// 		);
+		// 	});
 	}
 	async isAllowed(): Promise<boolean> {
 		return config.LARK_CHATID.includes(this.chat_id);
