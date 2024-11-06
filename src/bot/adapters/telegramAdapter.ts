@@ -49,11 +49,43 @@ export class TelegramContext implements Context {
 	async reply(message: string): Promise<void> {
 		this.ctx.reply(message);
 	}
-	async replyWithRichText(message: string): Promise<void> {
-		this.ctx.reply(message, {
-			parse_mode: "HTML",
-			link_preview_options: { is_disabled: true },
-		});
+	async replyWithRichText(message: RichTextMessage): Promise<void> {
+		this.ctx.reply(
+			message
+				.map((para) =>
+					para
+						.map((block) => {
+							switch (block.type) {
+								case "link":
+									return `<a href="${(block as Link).href}">${
+										(block as Link).content
+									}</a>`;
+								case "text": {
+									const txt = block as RichText;
+									let ret = txt.content;
+									if (txt.bold) {
+										ret = `<strong>${ret}</strong>`;
+									}
+									if (txt.italic) {
+										ret = `<em>${ret}</em>`;
+									}
+									if (txt.underline) {
+										ret = `<u>${ret}</u>`;
+									}
+									return ret;
+								}
+								default:
+									return "";
+							}
+						})
+						.join("")
+				)
+				.join("\n"),
+			{
+				parse_mode: "HTML",
+				link_preview_options: { is_disabled: true },
+			}
+		);
 	}
 	async replyWithPhoto(photo: Buffer): Promise<void> {
 		this.ctx.replyWithPhoto({ source: photo });
