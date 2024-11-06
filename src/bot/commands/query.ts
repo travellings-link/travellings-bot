@@ -15,9 +15,16 @@ export const query: MessageProcessor = async (ctx) => {
 		const result = await WebModel.findByPk(parseInt(input));
 		if (result) {
 			const { name, link, status, failedReason, tag } = result;
-			ctx.replyWithRichText(
-				`<strong>找到啦 ~</strong>\n\nID：${input}\n名称：${name}\n网址：${link}\n巡查状态：${status}\n失败原因：${failedReason}\nTAG：${tag}`
-			);
+			ctx.replyWithRichText([
+				[{ type: "text", content: "找到啦 ~", bold: true }],
+				[{ type: "text", content: "" }],
+				[{ type: "text", content: `ID：${input}` }],
+				[{ type: "text", content: `名称：${name}` }],
+				[{ type: "text", content: `网址：${link}` }],
+				[{ type: "text", content: `巡查状态：${status}` }],
+				[{ type: "text", content: `失败原因：${failedReason}` }],
+				[{ type: "text", content: `TAG：${tag}` }],
+			]);
 			return;
 		} else {
 			ctx.reply("没找到喵 ~");
