@@ -1,7 +1,7 @@
-export type Leaf = {
+export type BaseLeaf = {
 	type: string;
 };
-export type Text = Leaf & {
+export type Text = BaseLeaf & {
 	type: "text";
 	content: string;
 	bold?: boolean;
@@ -15,5 +15,6 @@ export type Link = Omit<Text, "type"> & {
 	underline: true;
 	italic: false;
 };
+export type Leaf = BaseLeaf | Text | Link;
 export type Paragraph = Leaf[];
 export type RichTextMessage = Paragraph[];
