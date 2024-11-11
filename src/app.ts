@@ -23,6 +23,7 @@ import { screenshot } from "./bot/commands/screenshot";
 import { logger } from "./modules/typedLogger";
 import { requireAdmin } from "./bot/middlewares/requireAdmin";
 import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
+import { LarkAdapter } from "./bot/adapters/larkAdapter";
 
 export const global = {
 	version: "7.0.0",
@@ -56,6 +57,7 @@ sql
 	}); // 数据库同步 + 错误处理
 
 botManager.registerAdapter(new TelegramAdapter());
+botManager.registerAdapter(new LarkAdapter());
 
 botManager.registerCommand("help", help);
 botManager.registerCommand("version", version);

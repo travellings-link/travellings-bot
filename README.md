@@ -5,8 +5,6 @@
 巡查和 Telegram Bot 融为一体  
 不代表最终品质
 
-**从 CommonJS 迁移到 Typescript + ES Module，需要完成测试和 Code Review 再 merge 到 main 分支**
-
 ## 环境
 
 - Node.JS ≥ 18
@@ -22,6 +20,7 @@
 - MySQL
 - Puppeteer
 - Axios
+- Lark Node.js SDK
 
 ## 配置
 
@@ -47,13 +46,17 @@ screenshot - 截图站点
 
 ## 规范
 
-巡查功能放在 `src/methods` 目录  
-组件放在 `src/modules` 目录  
-Telegram Bot 放在 `src/telegram` 目录  
-工具（外置函数）放在 `src/utils` 目录
-构建产物放在 `dist` 目录
+- 巡查功能放在 `src/methods` 目录
+- 组件放在 `src/modules` 目录
+- Bot 相关放在 `src/bot` 目录
+  - 平台相关的 Bot 功能放在 `src/bot/adapters` 目录
+  - Bot 命令实现放在 `src/bot/commands` 目录
+  - Bot 中间件实现放在 `src/bot/middlewares` 目录
+  - Bot 工具类实现放在 `src/bot/utils` 目录
+- 工具（外置函数）放在 `src/utils` 目录
+- 构建产物放在 `dist` 目录
 
-PR 请注意规范 commit message 谢谢喵
+PR 请注意规范 Commit message 谢谢喵
 
 ## 版权
 

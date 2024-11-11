@@ -178,9 +178,26 @@ export default async function normalCheck(inputID?: number) {
 	)}｜总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`;
 	axios_logger.info(` 检测完成 >> ${stats}`, "AXIOS");
 	axios_logger.close();
-	botManager.boardcastMessage(
-		`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Axios\n持续了 ${spentTime(
-			input
-		)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：巡查所有站点`
-	);
+	botManager.boardcastRichTextMessage([
+		[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
+		[{ type: "text", content: "" }],
+		[{ type: "text", content: "本次巡查方式：Axios" }],
+		[{ type: "text", content: `持续了 ${spentTime(input)}` }],
+		[{ type: "text", content: "" }],
+		[{ type: "text", bold: true, content: "巡查报告" }],
+		[
+			{
+				type: "text",
+				content: `总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`,
+			},
+		],
+		[{ type: "text", content: "" }],
+		[{ type: "text", content: `发送时间：${time()} CST` }],
+		[{ type: "text", bold: true, content: "备注：巡查所有站点" }],
+	]);
+	// botManager.boardcastMessage(
+	// 	`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Axios\n持续了 ${spentTime(
+	// 		input
+	// 	)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：巡查所有站点`
+	// );
 }

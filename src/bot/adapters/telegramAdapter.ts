@@ -7,6 +7,11 @@ import {
 } from "./botAdapter";
 import { config } from "../../config";
 import { logger } from "../../modules/typedLogger";
+import {
+	Link,
+	RichTextMessage,
+	Text as RichText,
+} from "bot/utils/richTextMessage";
 
 export class TelegramContext implements Context {
 	private readonly ctx: TgContext;
@@ -20,35 +25,67 @@ export class TelegramContext implements Context {
 		}
 		return this.ctx.text;
 	}
-	async getChatId(): Promise<number> {
+	async getChatId(): Promise<string> {
 		if (this.ctx.chat === undefined) {
 			throw new Error("Cannot get ChatID in a non-chat context.");
 		}
-		return this.ctx.chat.id;
+		return this.ctx.chat.id.toString();
 	}
-	async getSenderId(): Promise<number> {
+	async getSenderId(): Promise<string> {
 		if (this.ctx.message === undefined) {
 			throw new Error("Cannot get SenderID without message.");
 		}
-		return this.ctx.message.from.id;
+		return this.ctx.message.from.id.toString();
 	}
 	async isAdmin(): Promise<boolean> {
-		const sender = await this.getSenderId();
+		const sender = parseInt(await this.getSenderId());
 		const admins = await this.ctx.getChatAdministrators();
 		return admins.some((u) => u.user.id === sender);
 	}
 	async isAllowed(): Promise<boolean> {
-		const chatId = await this.getChatId();
+		const chatId = parseInt(await this.getChatId());
 		return config.TG_ALLOW_CHATID.includes(chatId);
 	}
 	async reply(message: string): Promise<void> {
 		this.ctx.reply(message);
 	}
-	async replyWithRichText(message: string): Promise<void> {
-		this.ctx.reply(message, {
-			parse_mode: "HTML",
-			link_preview_options: { is_disabled: true },
-		});
+	async replyWithRichText(message: RichTextMessage): Promise<void> {
+		this.ctx.reply(
+			message
+				.map((para) =>
+					para
+						.map((block) => {
+							switch (block.type) {
+								case "link":
+									return `<a href="${(block as Link).href}">${
+										(block as Link).content
+									}</a>`;
+								case "text": {
+									const txt = block as RichText;
+									let ret = txt.content;
+									if (txt.bold) {
+										ret = `<strong>${ret}</strong>`;
+									}
+									if (txt.italic) {
+										ret = `<em>${ret}</em>`;
+									}
+									if (txt.underline) {
+										ret = `<u>${ret}</u>`;
+									}
+									return ret;
+								}
+								default:
+									return "";
+							}
+						})
+						.join("")
+				)
+				.join("\n"),
+			{
+				parse_mode: "HTML",
+				link_preview_options: { is_disabled: true },
+			}
+		);
 	}
 	async replyWithPhoto(photo: Buffer): Promise<void> {
 		this.ctx.replyWithPhoto({ source: photo });
@@ -89,6 +126,41 @@ export class TelegramAdapter implements BotAdapter {
 			const c = new TelegramContext(ctx);
 			onMessageCallback(c);
 		});
+	}
+
+	async boardcastRichTextMessage(message: RichTextMessage): Promise<void> {
+		this.boardcastMessage(
+			message
+				.map((para) =>
+					para
+						.map((block) => {
+							switch (block.type) {
+								case "link":
+									return `<a href="${(block as Link).href}">${
+										(block as Link).content
+									}</a>`;
+								case "text": {
+									const txt = block as RichText;
+									let ret = txt.content;
+									if (txt.bold) {
+										ret = `<strong>${ret}</strong>`;
+									}
+									if (txt.italic) {
+										ret = `<em>${ret}</em>`;
+									}
+									if (txt.underline) {
+										ret = `<u>${ret}</u>`;
+									}
+									return ret;
+								}
+								default:
+									return "";
+							}
+						})
+						.join("")
+				)
+				.join("\n")
+		);
 	}
 
 	async boardcastMessage(message: string): Promise<void> {
