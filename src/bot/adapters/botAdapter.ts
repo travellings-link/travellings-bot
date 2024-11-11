@@ -9,6 +9,7 @@ export interface Context {
 	getSenderId(): Promise<string>;
 	isAdmin(): Promise<boolean>;
 	isAllowed(): Promise<boolean>;
+	isPrivateChat(): Promise<boolean>;
 	reply(message: string): Promise<void>;
 	replyWithRichText(message: RichTextMessage): Promise<void>;
 	replyWithPhoto(photo: Buffer): Promise<void>;
