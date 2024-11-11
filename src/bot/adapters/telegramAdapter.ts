@@ -19,6 +19,10 @@ export class TelegramContext implements Context {
 		this.ctx = ctx;
 	}
 
+	async isPrivateChat(): Promise<boolean> {
+		return this.ctx.chat?.type === "private";
+	}
+
 	async getMessageText(): Promise<string> {
 		if (this.ctx.text === undefined) {
 			throw new Error("No text message contained in context.");

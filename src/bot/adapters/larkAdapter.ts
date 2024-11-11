@@ -34,6 +34,21 @@ export class LarkContext implements Context {
 		this.message_id = message_id;
 		this.message_text = message_text;
 	}
+	async isPrivateChat(): Promise<boolean> {
+		try {
+			const chatInfo = await this.client.im.v1.chat.get({
+				path: { chat_id: this.chat_id },
+			});
+			if (chatInfo.code !== 0) {
+				logger.err(`Error fetching chat info: ${chatInfo.msg}`, "LarkBot");
+				return false;
+			}
+			return chatInfo.data?.chat_type === "p2p";
+		} catch (error) {
+			logger.err(`Failed to determine chat type: ${error}`, "LarkBot");
+			return false;
+		}
+	}
 	async getMessageText(): Promise<string> {
 		return this.message_text;
 	}
