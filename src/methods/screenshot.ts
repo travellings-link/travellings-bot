@@ -66,6 +66,7 @@ async function screenshotByUrl(url: string) {
 				"--disable-logging",
 				"--log-level=3",
 				"--no-sandbox",
+				"--disable-setuid-sandbox",
 			],
 		});
 
