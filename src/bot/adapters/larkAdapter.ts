@@ -272,7 +272,7 @@ export class LarkAdapter implements BotAdapter {
 					ctx.reply("你好！有什么事喵？");
 					return;
 				}
-				await this.commandList[command](ctx);
+				this.commandList[command](ctx);
 			},
 		});
 		this.wsClient.start({
