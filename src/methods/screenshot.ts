@@ -32,6 +32,7 @@ async function screenshotByID(id: number) {
 				"--disable-logging",
 				"--log-level=3",
 				"--no-sandbox",
+				"--disable-setuid-sandbox",
 			],
 		});
 
@@ -58,6 +59,7 @@ async function screenshotByID(id: number) {
 
 async function screenshotByUrl(url: string) {
 	try {
+		logger.debug("Launching Browser.", "SCREENSHOT");
 		const browser = await launch({
 			headless: true,
 			args: [
@@ -69,21 +71,27 @@ async function screenshotByUrl(url: string) {
 				"--disable-setuid-sandbox",
 			],
 		});
-
+		logger.debug("Browser Launched.", "SCREENSHOT");
 		const page = await browser.newPage();
+		logger.debug("Page created.", "SCREENSHOT");
 		await page.setViewport({ width: 1920, height: 1080 });
+		logger.debug("Page Viewport setted.", "SCREENSHOT");
 		await page.setExtraHTTPHeaders({
 			referer: "https://www.travellings.cn/go.html", // 来自开往的 Referer
 		});
+		logger.debug("Page Header setted.", "SCREENSHOT");
 		// await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
 
 		await Promise.all([
 			page.goto(url),
 			page.waitForNavigation({ waitUntil: "networkidle0" }),
 		]);
+		logger.debug("Navigation finalized.", "SCREENSHOT");
 		const screenshotBuffer = await page.screenshot();
 
+		logger.debug("Screen shotted.", "SCREENSHOT");
 		await browser.close();
+		logger.debug("Browser Closed.", "SCREENSHOT");
 		return screenshotBuffer;
 	} catch (e) {
 		if ((e as Error)["message"] !== undefined) {
