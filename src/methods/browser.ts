@@ -81,6 +81,19 @@ export default async function browserCheck(input?: number) {
 				},
 			});
 
+			// 在飞书表格中把之前的数据标为过期
+			if (config.LARK_DELETE_TOKEN !== undefined) {
+				await axios.post(
+					"https://travellings.feishu.cn/base/automation/webhook/event/IMGSaw0NYwvpgvh62p6cSxeVnXM",
+					{},
+					{
+						headers: {
+							Authorization: `Bearer ${config.LARK_DELETE_TOKEN}`,
+						},
+					}
+				);
+			}
+
 			for (const site of sitesToCheck) {
 				await check(page, site, browser_logger);
 				total++;
@@ -151,6 +164,24 @@ export default async function browserCheck(input?: number) {
 	}
 }
 
+async function pushToLark(site: WebModel) {
+	if (config.LARK_ADD_TOKEN === undefined) {
+		return;
+	}
+	axios.post(
+		"https://travellings.feishu.cn/base/automation/webhook/event/XqqeajshBwBIRlh4GyAcu1d1ned",
+		{
+			site_id: site.id,
+			link: site.link,
+		},
+		{
+			headers: {
+				Authorization: `Bearer ${config.LARK_ADD_TOKEN}`,
+			},
+		}
+	);
+}
+
 async function check(page: Page, site: WebModel, log: Logger) {
 	try {
 		await Promise.all([
@@ -174,6 +205,7 @@ async function check(page: Page, site: WebModel, log: Logger) {
 				log.info(`ID >> ${site.id}, Result >> ${site.status} → RUN`, "BROWSER");
 				run++;
 			} else {
+				await pushToLark(site);
 				await WebModel.update(
 					{ status: "LOST", failedReason: null },
 					{ where: { id: site.id } }
@@ -186,6 +218,7 @@ async function check(page: Page, site: WebModel, log: Logger) {
 			}
 		}
 	} catch (error) {
+		await pushToLark(site);
 		log.info(
 			`ID >> ${site.id}, Result >> ${site.status} → 不做修改, Reason >> ${
 				(error as Error).message
