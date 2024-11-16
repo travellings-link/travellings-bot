@@ -78,6 +78,16 @@ export default async function browserCheck(input?: number) {
 					status: {
 						[Op.in]: ["LOST", "ERROR", "403"],
 					},
+					lastManualCheck: {
+						[Op.or]: [
+							{ [Op.eq]: null },
+							{
+								[Op.lt]: new Date(
+									new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+								),
+							},
+						],
+					},
 				},
 			});
 
@@ -199,7 +209,7 @@ async function check(page: Page, site: WebModel, log: Logger) {
 
 			if (includeEN || includeZH) {
 				await WebModel.update(
-					{ status: "RUN", failedReason: null },
+					{ status: "RUN", failedReason: null, lastManualCheck: null },
 					{ where: { id: site.id } }
 				);
 				log.info(`ID >> ${site.id}, Result >> ${site.status} → RUN`, "BROWSER");
@@ -207,7 +217,7 @@ async function check(page: Page, site: WebModel, log: Logger) {
 			} else {
 				await pushToLark(site);
 				await WebModel.update(
-					{ status: "LOST", failedReason: null },
+					{ status: "LOST", failedReason: null, lastManualCheck: null },
 					{ where: { id: site.id } }
 				);
 				log.info(
@@ -219,6 +229,10 @@ async function check(page: Page, site: WebModel, log: Logger) {
 		}
 	} catch (error) {
 		await pushToLark(site);
+		await WebModel.update(
+			{ lastManualCheck: null },
+			{ where: { id: site.id } }
+		);
 		log.info(
 			`ID >> ${site.id}, Result >> ${site.status} → 不做修改, Reason >> ${
 				(error as Error).message

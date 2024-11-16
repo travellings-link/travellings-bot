@@ -77,6 +77,16 @@ export default async function normalCheck(inputID?: number) {
 				status: {
 					[Op.notIn]: ["WAIT"],
 				},
+				lastManualCheck: {
+					[Op.or]: [
+						{ [Op.eq]: null },
+						{
+							[Op.lt]: new Date(
+								new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+							),
+						},
+					],
+				},
 			},
 		});
 	}
@@ -124,6 +134,7 @@ export default async function normalCheck(inputID?: number) {
 				web.failedReason = null;
 				lost++;
 			}
+			web.lastManualCheck = null;
 			axios_logger.info(
 				`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
 				"AXIOS"
@@ -151,6 +162,7 @@ export default async function normalCheck(inputID?: number) {
 					web.failedReason = `Axios Error：${error.message}`;
 					errorCount++;
 				}
+				web.lastManualCheck = null;
 				axios_logger.info(
 					`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
 					"AXIOS"

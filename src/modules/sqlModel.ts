@@ -25,6 +25,7 @@ class WebModel extends Model<
 	declare link: string;
 	declare tag: string | null;
 	declare failedReason: string | null;
+	declare lastManualCheck: Date | null;
 }
 
 WebModel.init(
@@ -52,6 +53,10 @@ WebModel.init(
 		},
 		failedReason: {
 			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		lastManualCheck: {
+			type: DataTypes.DATE,
 			allowNull: true,
 		},
 	},
