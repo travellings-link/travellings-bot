@@ -13,7 +13,6 @@
 import axios, { AxiosError } from "axios";
 import { config } from "../config";
 import { Op } from "sequelize";
-import log from "../modules/logger";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 
@@ -182,7 +181,8 @@ export default async function normalCheck(inputID?: number) {
 			headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
 		});
 	} catch (e) {
-		log.err(e, "REDIS");
+		// e 的类型是 unknown，不知道怎么写了干脆这么套
+		axios_logger.err(`${e}`, "REDIS");
 	}
 
 	const stats = `检测耗时：${spentTime(
