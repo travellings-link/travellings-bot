@@ -181,8 +181,7 @@ export default async function normalCheck(inputID?: number) {
 			headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
 		});
 	} catch (e) {
-		// e 的类型是 unknown，不知道怎么写了干脆这么套
-		axios_logger.err(`${e}`, "REDIS");
+		axios_logger.err((e as Error).message, "REDIS");
 	}
 
 	const stats = `检测耗时：${spentTime(
