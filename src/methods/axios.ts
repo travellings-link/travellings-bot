@@ -13,7 +13,6 @@
 import axios, { AxiosError } from "axios";
 import { config } from "../config";
 import { Op } from "sequelize";
-import log from "../modules/logger";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 
@@ -182,7 +181,7 @@ export default async function normalCheck(inputID?: number) {
 			headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
 		});
 	} catch (e) {
-		log.err(e, "REDIS");
+		axios_logger.err((e as Error).message, "REDIS");
 	}
 
 	const stats = `检测耗时：${spentTime(
