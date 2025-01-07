@@ -15,7 +15,6 @@ import { config } from "../config";
 import { Op } from "sequelize";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
-
 import { botManager } from "../bot/botManager";
 
 const axiosConfig = {

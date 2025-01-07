@@ -11,7 +11,7 @@ import {
 	Link,
 	RichTextMessage,
 	Text as RichText,
-} from "bot/utils/richTextMessage";
+} from "../utils/richTextMessage";
 import path from "path";
 import fs from "fs";
 

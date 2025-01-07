@@ -11,7 +11,7 @@ import {
 	Link,
 	RichTextMessage,
 	Text as RichText,
-} from "bot/utils/richTextMessage";
+} from "../utils/richTextMessage";
 
 export class TelegramContext implements Context {
 	private readonly ctx: TgContext;

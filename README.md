@@ -29,7 +29,7 @@
 ## 安装 & 启动
 
 - 开发环境：`npm install -g pnpm` & `pnpm i` & `pnpm run dev`
-- 生产环境：`npm install -g pnpm` & `pnpm i` & `pnpm run build` & `node dist/app.js`
+- 生产环境：`npm install -g pnpm` & `pnpm i` & `pnpm run build` & `pnpm run start`
 
 ## Tg Bot 命令
 
