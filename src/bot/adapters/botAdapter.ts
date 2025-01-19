@@ -1,4 +1,4 @@
-import { RichTextMessage } from "bot/utils/richTextMessage";
+import { RichTextMessage } from "../utils/richTextMessage";
 
 export type MessageProcessor = (ctx: Context) => Promise<void>;
 export type ErrorProcessor = (err: Error, ctx: Context) => Promise<void>;

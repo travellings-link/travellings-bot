@@ -2,10 +2,10 @@
 	"scripts": {
 		"lint": "tsc --noEmit && eslint src",
 		"fix": "eslint src --fix",
-		"dev": "concurrently \"tsc -w\" \"node --watch dist/app.js\"",
-		"build": "tsc",
+		"dev": "unbuild --stub && node dist/app.mjs",
+		"build": "unbuild",
 		"prebuild": "eslint src",
-		"start": "node dist/app.js"
+		"start": "node dist/app.mjs"
 	},
 	"dependencies": {
 		"@larksuiteoapi/node-sdk": "^1.38.0",
@@ -33,6 +33,8 @@
 		"globals": "^15.12.0",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.6.3",
-		"typescript-eslint": "^8.13.0"
-	}
+		"typescript-eslint": "^8.13.0",
+		"unbuild": "^3.3.1"
+	},
+	"packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
 }
