@@ -204,10 +204,22 @@ async function check(page: Page, site: WebModel, log: Logger) {
 			fourxx++;
 		} else {
 			const pageContent = await page.content();
+
+			// 可能的绕过方法 -> 站点挂个无实际跳转作用的文字
 			const includeEN = pageContent.includes("travelling");
 			const includeZH = pageContent.includes("开往");
+			
+			// 可能的绕过方法 -> 站点挂个假链接但是无实际跳转作用/挂个不可见的链接
+			// 许可的开往跳转外链
+			const links = [
+				"https://www.travellings.cn/go.html",
+				"https://www.travellings.cn/plain.html",
+				"https://www.travellings.cn/coder-1024.html",
+				"https://www.travellings.cn/go-by-clouds.html",
+			];
+			const includeLink = links.some(link => pageContent.includes(link));
 
-			if (includeEN || includeZH) {
+			if (includeEN || includeZH || includeLink) {
 				await WebModel.update(
 					{ status: "RUN", failedReason: null, lastManualCheck: null },
 					{ where: { id: site.id } }
