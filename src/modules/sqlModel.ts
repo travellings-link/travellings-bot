@@ -5,7 +5,6 @@
 // |____/ \__\_\_____|    |_|  |_|\___/ \__,_|\___|_|
 //
 // By BLxcwg666 <huixcwg@gmail.com>
-
 import {
 	CreationOptional,
 	DataTypes,
@@ -13,6 +12,7 @@ import {
 	InferCreationAttributes,
 	Model,
 } from "sequelize";
+
 import sql from "./sqlConfig";
 
 class WebModel extends Model<
@@ -64,7 +64,7 @@ WebModel.init(
 		tableName: "webs",
 		sequelize: sql,
 		timestamps: false,
-	}
+	},
 );
 
 class UserModel extends Model<
@@ -106,7 +106,7 @@ UserModel.init(
 		tableName: "webs",
 		sequelize: sql,
 		timestamps: false,
-	}
+	},
 );
 
 export { WebModel, UserModel };

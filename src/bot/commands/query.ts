@@ -1,6 +1,6 @@
 import { WebModel } from "../../modules/sqlModel";
-import { MessageProcessor } from "../adapters/botAdapter";
 import { logger } from "../../modules/typedLogger";
+import { MessageProcessor } from "../adapters/botAdapter";
 
 export const query: MessageProcessor = async (ctx) => {
 	const args = (await ctx.getMessageText()).split(" ");

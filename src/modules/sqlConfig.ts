@@ -5,8 +5,8 @@
 // |____/ \__\_\_____|     \____\___/|_| |_|_| |_|\__, |
 //                                                |___/
 // By BLxcwg666 <huixcwggmail.com>
-
 import { Sequelize } from "sequelize";
+
 import { config } from "../config";
 import { logger } from "./typedLogger";
 

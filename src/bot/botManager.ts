@@ -10,7 +10,7 @@ class BotManager implements BotAdapter {
 		await Promise.all(
 			this.adapters.map((a) => {
 				return a.boardcastRichTextMessage(message);
-			})
+			}),
 		);
 	}
 	private adapters: BotAdapter[] = [];
@@ -19,7 +19,7 @@ class BotManager implements BotAdapter {
 	}
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcessor
+		onMessageCallback: MessageProcessor,
 	): void {
 		this.adapters.forEach((a) => {
 			a.registerCommand(commandName, onMessageCallback);
@@ -34,7 +34,7 @@ class BotManager implements BotAdapter {
 		await Promise.all(
 			this.adapters.map((a) => {
 				return a.boardcastMessage(message);
-			})
+			}),
 		);
 	}
 }

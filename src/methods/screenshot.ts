@@ -2,9 +2,10 @@
 import fs from "fs";
 import path from "path";
 import { Browser, launch } from "puppeteer";
-import { logger } from "../modules/typedLogger";
-import { WebModel } from "../modules/sqlModel";
+
 import { config } from "../config";
+import { WebModel } from "../modules/sqlModel";
+import { logger } from "../modules/typedLogger";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;

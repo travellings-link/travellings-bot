@@ -1,19 +1,20 @@
 import * as lark from "@larksuiteoapi/node-sdk";
+import fs from "fs";
+import path from "path";
+
+import { config } from "../../config";
+import { logger } from "../../modules/typedLogger";
+import {
+	Link,
+	Text as RichText,
+	RichTextMessage,
+} from "../utils/richTextMessage";
 import {
 	BotAdapter,
 	Context,
 	ErrorProcessor,
 	MessageProcessor,
 } from "./botAdapter";
-import { config } from "../../config";
-import { logger } from "../../modules/typedLogger";
-import {
-	Link,
-	RichTextMessage,
-	Text as RichText,
-} from "../utils/richTextMessage";
-import path from "path";
-import fs from "fs";
 
 export class LarkContext implements Context {
 	private readonly client: lark.Client;
@@ -26,7 +27,7 @@ export class LarkContext implements Context {
 		sender_id: string,
 		chat_id: string,
 		message_id: string,
-		message_text: string
+		message_text: string,
 	) {
 		this.client = client;
 		this.sender_id = sender_id;
@@ -40,7 +41,10 @@ export class LarkContext implements Context {
 				path: { chat_id: this.chat_id },
 			});
 			if (chatInfo.code !== 0) {
-				logger.err(`Error fetching chat info: ${chatInfo.msg}`, "LarkBot");
+				logger.err(
+					`Error fetching chat info: ${chatInfo.msg}`,
+					"LarkBot",
+				);
 				return false;
 			}
 			return chatInfo.data?.chat_type === "p2p";
@@ -130,7 +134,7 @@ export class LarkContext implements Context {
 									text: "",
 								};
 						}
-					})
+					}),
 				),
 			},
 		};
@@ -156,10 +160,10 @@ export class LarkContext implements Context {
 			photo,
 			{
 				flag: "w+",
-			}
+			},
 		);
 		const readStream = fs.createReadStream(
-			path.join(config.TMP_PATH, "img", `${this.message_id}`)
+			path.join(config.TMP_PATH, "img", `${this.message_id}`),
 		);
 		const key = await this.client.im.v1.image
 			.create({
@@ -176,7 +180,7 @@ export class LarkContext implements Context {
 				(err) => {
 					logger.err(`Upload image failed: ${err}`, "LarkBot");
 					return undefined;
-				}
+				},
 			);
 		if (key === undefined) {
 			this.reply("图片上传失败。");
@@ -258,17 +262,20 @@ export class LarkAdapter implements BotAdapter {
 				}
 				const txt = (JSON.parse(content).text as string).replace(
 					"@_user_1 ",
-					""
+					"",
 				);
 				const ctx = new LarkContext(
 					this.client,
 					sender_id!.open_id!,
 					chat_id,
 					message_id,
-					txt
+					txt,
 				);
 				const command = txt.split(" ")[0]?.replace("/", "");
-				if (command === undefined || this.commandList[command] === undefined) {
+				if (
+					command === undefined ||
+					this.commandList[command] === undefined
+				) {
 					ctx.reply("你好！有什么事喵？");
 					return;
 				}
@@ -335,7 +342,7 @@ export class LarkAdapter implements BotAdapter {
 									text: "",
 								};
 						}
-					})
+					}),
 				),
 			},
 		};
@@ -364,15 +371,18 @@ export class LarkAdapter implements BotAdapter {
 					})
 					.then((ret) => {
 						if (ret.code === 0) {
-							logger.debug("Message sent successfully.", "LarkBot");
+							logger.debug(
+								"Message sent successfully.",
+								"LarkBot",
+							);
 							return;
 						}
 						logger.err(
 							`Send message failed. Error message: ${ret.msg}`,
-							"LarkBot"
+							"LarkBot",
 						);
 					});
-			})
+			}),
 		);
 	}
 	async boardcastMessage(message: string): Promise<void> {
@@ -403,20 +413,23 @@ export class LarkAdapter implements BotAdapter {
 					})
 					.then((ret) => {
 						if (ret.code === 0) {
-							logger.debug("Message sent successfully.", "LarkBot");
+							logger.debug(
+								"Message sent successfully.",
+								"LarkBot",
+							);
 							return;
 						}
 						logger.err(
 							`Send message failed. Error message: ${ret.msg}`,
-							"LarkBot"
+							"LarkBot",
 						);
 					});
-			})
+			}),
 		);
 	}
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcessor
+		onMessageCallback: MessageProcessor,
 	): void {
 		this.commandList[commandName] = onMessageCallback;
 	}

@@ -1,5 +1,5 @@
-import { isUrl } from "../../utils/isUrl";
 import { screenshotByID, screenshotByUrl } from "../../methods/screenshot";
+import { isUrl } from "../../utils/isUrl";
 import { MessageProcessor } from "../adapters/botAdapter";
 
 export const screenshot: MessageProcessor = async (ctx) => {

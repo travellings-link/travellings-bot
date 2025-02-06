@@ -1,17 +1,18 @@
 import { Telegraf, Context as TgContext } from "telegraf";
+
+import { config } from "../../config";
+import { logger } from "../../modules/typedLogger";
+import {
+	Link,
+	Text as RichText,
+	RichTextMessage,
+} from "../utils/richTextMessage";
 import {
 	BotAdapter,
 	Context,
 	ErrorProcessor,
 	MessageProcessor,
 } from "./botAdapter";
-import { config } from "../../config";
-import { logger } from "../../modules/typedLogger";
-import {
-	Link,
-	RichTextMessage,
-	Text as RichText,
-} from "../utils/richTextMessage";
 
 export class TelegramContext implements Context {
 	private readonly ctx: TgContext;
@@ -61,9 +62,7 @@ export class TelegramContext implements Context {
 						.map((block) => {
 							switch (block.type) {
 								case "link":
-									return `<a href="${(block as Link).href}">${
-										(block as Link).content
-									}</a>`;
+									return `<a href="${(block as Link).href}">${(block as Link).content}</a>`;
 								case "text": {
 									const txt = block as RichText;
 									let ret = txt.content;
@@ -82,13 +81,13 @@ export class TelegramContext implements Context {
 									return "";
 							}
 						})
-						.join("")
+						.join(""),
 				)
 				.join("\n"),
 			{
 				parse_mode: "HTML",
 				link_preview_options: { is_disabled: true },
-			}
+			},
 		);
 	}
 	async replyWithPhoto(photo: Buffer): Promise<void> {
@@ -124,7 +123,7 @@ export class TelegramAdapter implements BotAdapter {
 	}
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcessor
+		onMessageCallback: MessageProcessor,
 	): void {
 		this.bot.command(commandName, (ctx) => {
 			const c = new TelegramContext(ctx);
@@ -140,9 +139,7 @@ export class TelegramAdapter implements BotAdapter {
 						.map((block) => {
 							switch (block.type) {
 								case "link":
-									return `<a href="${(block as Link).href}">${
-										(block as Link).content
-									}</a>`;
+									return `<a href="${(block as Link).href}">${(block as Link).content}</a>`;
 								case "text": {
 									const txt = block as RichText;
 									let ret = txt.content;
@@ -161,9 +158,9 @@ export class TelegramAdapter implements BotAdapter {
 									return "";
 							}
 						})
-						.join("")
+						.join(""),
 				)
-				.join("\n")
+				.join("\n"),
 		);
 	}
 
