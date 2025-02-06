@@ -18,6 +18,7 @@ import { botManager } from "../bot/botManager";
 import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, logger, time } from "../modules/typedLogger";
+import { asyncPool } from "../utils/asyncPool";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
@@ -173,10 +174,12 @@ export default async function browserCheck(
 				);
 			}
 
-			for (const site of sitesToCheck) {
+			// 使用 asyncPool 限制同时查询数
+			const maxConcurrent = config.BROWSER_CHECK_MAX_CONCURRENT;
+			await asyncPool(maxConcurrent, sitesToCheck, async (site) => {
 				await checkSite(page, site, browser_logger, statusCounts);
 				statusCounts["total"]++;
-			}
+			});
 		}
 	} catch (error) {
 		browser_logger.err(`发生错误：${error}`, "BROWSER");

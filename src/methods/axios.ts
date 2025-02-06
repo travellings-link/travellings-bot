@@ -15,6 +15,7 @@ import { botManager } from "../bot/botManager";
 import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
+import { asyncPool } from "../utils/asyncPool";
 
 const axiosConfig = {
 	headers: {
@@ -116,10 +117,12 @@ export default async function normalCheck(
 		fivexx: 0,
 	};
 
-	for (const web of webs) {
-		statusCounts["total"]++;
+	// 使用 asyncPool 限制同时查询数
+	const maxConcurrent = config.AXIOS_CHECK_MAX_CONCURRENT;
+	await asyncPool(maxConcurrent, webs, async (web) => {
 		await checkSite(web, axios_logger, statusCounts);
-	}
+		statusCounts["total"]++;
+	});
 
 	const endTime = new Date();
 	const input = (endTime.getTime() - startTime.getTime()) / 1000;
@@ -319,6 +322,11 @@ async function checkSite(
 				web.failedReason = `Axios Error：${error.message}`;
 				statusCounts["errorCount"]++;
 			}
+		} else {
+			web.status = "ERROR";
+			web.failedReason =
+				error instanceof Error ? error.message : String(error);
+			statusCounts["errorCount"]++;
 		}
 	} finally {
 		web.lastManualCheck = null;

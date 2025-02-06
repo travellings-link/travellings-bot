@@ -61,4 +61,12 @@ export const config = {
 	DB_USER: process.env["DB_USER"] || "root",
 	DB_PASSWORD: process.env["DB_PASSWORD"] || "",
 	DB_PORT: process.env["DB_PORT"] ? parseInt(process.env["DB_PORT"]) : 3306,
+
+	// Max Concurrent
+	AXIOS_CHECK_MAX_CONCURRENT: process.env["AXIOS_CHECK_MAX_CONCURRENT"]
+		? parseInt(process.env["AXIOS_CHECK_MAX_CONCURRENT"])
+		: 20,
+	BROWSER_CHECK_MAX_CONCURRENT: process.env["BROWSER_CHECK_MAX_CONCURRENT"]
+		? parseInt(process.env["BROWSER_CHECK_MAX_CONCURRENT"])
+		: 10,
 };
