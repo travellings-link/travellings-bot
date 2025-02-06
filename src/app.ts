@@ -21,10 +21,12 @@ import { screenshot } from "./bot/commands/screenshot";
 import { version } from "./bot/commands/version";
 import { requireAdmin } from "./bot/middlewares/requireAdmin";
 import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
+import { config } from "./config";
 import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
 import sql from "./modules/sqlConfig";
 import { logger } from "./modules/typedLogger";
+import { asyncPool } from "./utils/asyncPool";
 
 export const global = {
 	version: "7.0.0",
@@ -81,39 +83,37 @@ if (isCLIMode) {
 		};
 	}
 
-	const Promises: Promise<void>[] = [];
-
-	for (const url of urls) {
-		logger.info(`✓ 开始巡查站点 ${url}`, "APP");
-		Promises.push(
-			axiosCheck(undefined, url).then((axiosResult) => {
-				if (!axiosResult) {
-					logger.err(`${url} 未能获取到 axiosCheck 的结果`, "APP");
-				} else {
-					if (siteResults.results[url]) {
-						siteResults.results[url]["axiosCheck"]["status"] =
-							axiosResult.status;
-						siteResults.results[url]["axiosCheck"]["failedReason"] =
-							axiosResult.failedReason;
-					}
+	// 进行 Axios 检查，使用 asyncPool 限制同时查询数
+	await asyncPool(config.AXIOS_CHECK_MAX_CONCURRENT, urls, async (url) => {
+		logger.info(`axiosCheck 开始巡查站点 ${url}`, "APP");
+		await axiosCheck(undefined, url).then((axiosResult) => {
+			if (!axiosResult) {
+				logger.err(`${url} 未能获取到 axiosCheck 的结果`, "APP");
+			} else {
+				if (siteResults.results[url]) {
+					siteResults.results[url]["axiosCheck"]["status"] =
+						axiosResult.status;
+					siteResults.results[url]["axiosCheck"]["failedReason"] =
+						axiosResult.failedReason;
 				}
-			}),
-		);
-		Promises.push(
-			browserCheck(undefined, url).then((browserResult) => {
-				if (!browserResult) {
-					logger.err(`${url} 未能获取到 browserCheck 的结果`, "APP");
-				} else {
-					if (siteResults.results[url]) {
-						siteResults.results[url]["browserCheck"]["status"] =
-							browserResult.status;
-					}
-				}
-			}),
-		);
-	}
+			}
+		});
+	});
 
-	await Promise.all(Promises);
+	// 进行 Browser 检查，使用 asyncPool 限制同时查询数
+	await asyncPool(config.BROWSER_CHECK_MAX_CONCURRENT, urls, async (url) => {
+		logger.info(`browserCheck 开始巡查站点 ${url}`, "APP");
+		await browserCheck(undefined, url).then((browserResult) => {
+			if (!browserResult) {
+				logger.err(`${url} 未能获取到 browserCheck 的结果`, "APP");
+			} else {
+				if (siteResults.results[url]) {
+					siteResults.results[url]["browserCheck"]["status"] =
+						browserResult.status;
+				}
+			}
+		});
+	});
 
 	logger.ok("△ 检测完成", "APP");
 	writeFileSync("results.json", JSON.stringify(siteResults, null, 2));
