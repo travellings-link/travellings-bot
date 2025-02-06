@@ -122,7 +122,8 @@ if (isCLIMode) {
 }
 
 logger.info("尝试连接到数据库...", "APP");
-sql.sync()
+await sql
+	.sync()
 	.then(() => {
 		logger.ok("成功连接到数据库 ~", "APP");
 	})
