@@ -19,13 +19,6 @@ import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, logger, time } from "../modules/typedLogger";
 
-let total = 0,
-	run = 0,
-	lost = 0,
-	errorCount = 0,
-	timeout = 0,
-	fourxx = 0,
-	fivexx = 0;
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
 if (!fs.existsSync(tmpPath)) {
@@ -67,13 +60,16 @@ export default async function browserCheck(
 	siteURL: string;
 	status: "RUN" | "LOST" | "ERROR" | "UNKNOWN";
 }> {
-	total = 0;
-	run = 0;
-	lost = 0;
-	errorCount = 0;
-	timeout = 0;
-	fourxx = 0;
-	fivexx = 0;
+	const statusCounts = {
+		total: 0,
+		run: 0,
+		lost: 0,
+		errorCount: 0,
+		timeout: 0,
+		fourxx: 0,
+		fivexx: 0,
+	};
+
 	const browser_logger = new Logger("_Browser");
 
 	let browser: Browser;
@@ -136,8 +132,8 @@ export default async function browserCheck(
 			});
 
 			if (site) {
-				await checkSite(page, site, browser_logger);
-				total++;
+				await checkSite(page, site, browser_logger, statusCounts);
+				statusCounts["total"]++;
 			} else {
 				browser_logger.err("指定的 ID 不存在", "BROWSER");
 				return;
@@ -178,8 +174,8 @@ export default async function browserCheck(
 			}
 
 			for (const site of sitesToCheck) {
-				await checkSite(page, site, browser_logger);
-				total++;
+				await checkSite(page, site, browser_logger, statusCounts);
+				statusCounts["total"]++;
 			}
 		}
 	} catch (error) {
@@ -205,7 +201,7 @@ export default async function browserCheck(
 
 			const stats = `检测耗时：${spentTime(
 				input,
-			)}｜总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`;
+			)}｜总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`;
 			browser_logger.info(`检测完成 >> ${stats}`, "BROWSER");
 			botManager.boardcastRichTextMessage([
 				[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
@@ -217,7 +213,7 @@ export default async function browserCheck(
 				[
 					{
 						type: "text",
-						content: `总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`,
+						content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
 					},
 				],
 				[{ type: "text", content: "" }],
@@ -233,7 +229,7 @@ export default async function browserCheck(
 			// botManager.boardcastMessage(
 			// 	`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Browser\n持续了 ${spentTime(
 			// 		input
-			// 	)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：仅巡查 LOST 和 ERROR 状态的站点`
+			// 	)}\n\n<strong>巡查报告</strong>\n总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个\n\n发送时间：${time()} CST\n备注：仅巡查 LOST 和 ERROR 状态的站点`
 			// );
 		}
 	}
@@ -354,10 +350,24 @@ async function checkSingleURL(
  * @param page - Puppeteer 页面实例。
  * @param site - 要检查的站点信息。
  * @param log - 日志记录器实例。
+ * @param statusCounts - 一个对象，用于记录不同状态的计数
  *
  * @returns {Promise<void>} - 异步函数，无返回值。
  */
-async function checkSite(page: Page, site: WebModel, log: Logger) {
+async function checkSite(
+	page: Page,
+	site: WebModel,
+	log: Logger,
+	statusCounts: {
+		total: number;
+		run: number;
+		lost: number;
+		errorCount: number;
+		timeout: number;
+		fourxx: number;
+		fivexx: number;
+	},
+) {
 	try {
 		await Promise.all([
 			page.goto(site.link),
@@ -366,7 +376,7 @@ async function checkSite(page: Page, site: WebModel, log: Logger) {
 
 		if (parseInt(site.status) >= 500) {
 			log.info(`ID >> ${site.id}, Result >> 不做修改`, "BROWSER");
-			fourxx++;
+			statusCounts["fourxx"]++;
 		} else {
 			const pageContent = await page.content();
 
@@ -383,7 +393,7 @@ async function checkSite(page: Page, site: WebModel, log: Logger) {
 					`ID >> ${site.id}, Result >> ${site.status} → RUN`,
 					"BROWSER",
 				);
-				run++;
+				statusCounts["run"]++;
 			} else {
 				await pushToLark(site);
 				await WebModel.update(
@@ -398,7 +408,7 @@ async function checkSite(page: Page, site: WebModel, log: Logger) {
 					`ID >> ${site.id}, Result >> ${site.status} → LOST`,
 					"BROWSER",
 				);
-				lost++;
+				statusCounts["lost"]++;
 			}
 		}
 	} catch (error) {
@@ -411,6 +421,6 @@ async function checkSite(page: Page, site: WebModel, log: Logger) {
 			`ID >> ${site.id}, Result >> ${site.status} → 不做修改, Reason >> ${(error as Error).message}`,
 			"BROWSER",
 		);
-		errorCount++;
+		statusCounts["errorCount"]++;
 	}
 }
