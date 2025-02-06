@@ -296,11 +296,6 @@ async function checkSite(
 			web.failedReason = null;
 			statusCounts["lost"]++;
 		}
-		web.lastManualCheck = null;
-		axios_logger.info(
-			`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
-			"AXIOS",
-		);
 	} catch (error) {
 		if (error instanceof AxiosError) {
 			if (error.code === "ECONNABORTED") {
@@ -324,13 +319,13 @@ async function checkSite(
 				web.failedReason = `Axios Error：${error.message}`;
 				statusCounts["errorCount"]++;
 			}
-			web.lastManualCheck = null;
-			axios_logger.info(
-				`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
-				"AXIOS",
-			);
 		}
 	} finally {
+		web.lastManualCheck = null;
+		axios_logger.info(
+			`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
+			"AXIOS",
+		);
 		await web.save();
 	}
 }
