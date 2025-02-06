@@ -130,13 +130,15 @@ export default async function browserCheck(input?: number) {
 		const endTime = new Date();
 		const input = (endTime.getTime() - startTime.getTime()) / 1000;
 		// 清除 Redis 缓存
-		try {
-			await axios.get(`${config.API_URL}/all`);
-			await axios.delete(`${config.API_URL}/action/purgeCache`, {
-				headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
-			});
-		} catch (e) {
-			logger.err((e as Error).message, "REDIS");
+		if (process.env["PUBLIC_MODE"] !== 'true'){
+			try {
+				await axios.get(`${config.API_URL}/all`);
+				await axios.delete(`${config.API_URL}/action/purgeCache`, {
+					headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
+				});
+			} catch (e) {
+				logger.err((e as Error).message, "REDIS");
+			}
 		}
 
 		const stats = `检测耗时：${spentTime(

@@ -36,6 +36,12 @@ async function checkAll() {
 	logger.ok("△ 检测完成，Sleep.", "APP");
 }
 
+
+// 获取命令行参数
+const args = process.argv.slice(2);
+// 检查是否包含 -public-mode 标志
+const isLocalDebug = args.includes('-public-mode');
+
 console.log(`\n
 _____                    _ _ _                     ____ _               _       ____        _   
 |_   _| __ __ ___   _____| | (_)_ __   __ _ ___    / ___| |__   ___  ___| | __  | __ )  ___ | |_ 
@@ -56,20 +62,27 @@ sql
 		logger.err((err as Error).message, "APP");
 	}); // 数据库同步 + 错误处理
 
-botManager.registerAdapter(new TelegramAdapter());
-botManager.registerAdapter(new LarkAdapter());
-
-botManager.registerCommand("help", help);
-botManager.registerCommand("version", version);
-botManager.registerCommand("query", requireSpecifiedChat(query));
-botManager.registerCommand("check", requireSpecifiedChat(requireAdmin(check)));
-botManager.registerCommand(
-	"screenshot",
-	requireSpecifiedChat(requireAdmin(screenshot))
-);
-
-logger.info("没到点呢，小睡一会 ~", "APP");
-
-schedule("0 4 * * *", () => {
+if (isLocalDebug) {
+	// 本地 debug 模式 检查完就退出
+	logger.info("进入本地开发模式...", "APP")
+	process.env["PUBLIC_MODE"] = 'true';
 	checkAll();
-});
+}else{
+	botManager.registerAdapter(new TelegramAdapter());
+	botManager.registerAdapter(new LarkAdapter());
+
+	botManager.registerCommand("help", help);
+	botManager.registerCommand("version", version);
+	botManager.registerCommand("query", requireSpecifiedChat(query));
+	botManager.registerCommand("check", requireSpecifiedChat(requireAdmin(check)));
+	botManager.registerCommand(
+		"screenshot",
+		requireSpecifiedChat(requireAdmin(screenshot))
+	);
+
+	logger.info("没到点呢，小睡一会 ~", "APP");
+
+	schedule("0 4 * * *", () => {
+		checkAll();
+	});
+}

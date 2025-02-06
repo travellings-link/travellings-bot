@@ -3,6 +3,7 @@
 		"lint": "tsc --noEmit && eslint src",
 		"fix": "eslint src --fix",
 		"dev": "unbuild --stub && node dist/app.mjs",
+		"dev-public": "unbuild --stub && node dist/app.mjs -public-mode",
 		"build": "unbuild",
 		"prebuild": "eslint src",
 		"start": "node dist/app.mjs"
