@@ -19,9 +19,7 @@
 - **浏览器自动化**: Puppeteer
 - **第三方服务**: Lark Node.js SDK
 
-## 快速启动
-
-### 生产环境
+## 在生产环境部署
 
 1. 安装 pnpm：
     ```sh
@@ -41,9 +39,9 @@
     ```
 
 
-### 开发环境
+## 在开发环境部署
 
-#### 事先准备
+### 事先准备
 
 1. 安装 pnpm：
     ```sh
@@ -56,54 +54,61 @@
 3. 本地部署 MYSQL （这里假设本地已经安装完毕 docker 环境，包括 docker-cli 工具）：
     ```sh
     docker pull mysql
+    ```
+    ```sh
     docker run --name mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=travellings_bot -p 3306:3306 -d mysql:latest
     ```
-4. 使用任意工具链接 MYSQL 服务器，以 [`mycli`](https://www.mycli.net/) 举例
-    ```sh
-    mycli -u root -p root
-    ```
-5. 输入以下指令创建数据库，以及初始化数据库数据
-    ```sql
-    -- 创建数据库
-    CREATE DATABASE travellings_bot;
-    -- 此步如果提示 (1007, "Can't create database 'travellings_bot'; database exists") 类似的内容
-    -- 请使用 DROP DATABASE travellings_bot; 删除可能已存在的数据库
+4. 初始化数据库
+    - 使用脚本自动初始化数据库数据
+        - 根据[脚本自述文件](scripts/public_api_to_db/README.md)操作
 
-    -- 使用数据库
-    USE travellings_bot;
+    - 手动初始化数据库数据
+        1. 使用任意工具链接 MYSQL 服务器，以 [`mycli`](https://www.mycli.net/) 举例
+            ```sh
+            mycli -u root -p root
+            ```
+        2. 输入以下指令创建数据库，以及初始化数据库数据
+            ```sql
+            -- 创建数据库
+            CREATE DATABASE travellings_bot;
+            -- 此步如果提示 (1007, "Can't create database 'travellings_bot'; database exists") 类似的内容
+            -- 请使用 DROP DATABASE travellings_bot; 删除可能已存在的数据库
 
-    -- 创建 webs 表
-    CREATE TABLE webs (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        status VARCHAR(255),
-        name VARCHAR(255) NOT NULL,
-        link VARCHAR(255) NOT NULL,
-        tag VARCHAR(255),
-        failedReason VARCHAR(255),
-        lastManualCheck DATETIME
-    );
+            -- 创建用户并授予权限
+            CREATE USER 'test' IDENTIFIED BY 'test';
+            GRANT ALL PRIVILEGES ON travellings_bot.* TO 'test';
+            FLUSH PRIVILEGES;
 
-    -- 创建 users 表
-    CREATE TABLE users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user VARCHAR(255) NOT NULL,
-        token VARCHAR(255) NOT NULL,
-        role VARCHAR(255) NOT NULL,
-        lastLogin VARCHAR(255)
-    );
+            -- 使用数据库
+            USE travellings_bot;
 
-    -- 创建用户并授予权限
-    CREATE USER 'test' IDENTIFIED BY 'test';
-    GRANT ALL PRIVILEGES ON travellings_bot.* TO 'test';
-    FLUSH PRIVILEGES;
+            -- 创建 webs 表
+            CREATE TABLE webs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                status TEXT,
+                name TEXT NOT NULL,
+                link TEXT NOT NULL,
+                tag TEXT,
+                failedReason TEXT,
+                lastManualCheck DATETIME
+            );
 
-    -- 插入测试数据
-    INSERT INTO webs (status, name, link, tag, failedReason, lastManualCheck) VALUES
-    ('RUN', 'Example Site 1', 'https://www.luochancy.com/', 'example', NULL, NULL),
-    ('RUN', 'Example Site 2', 'https://blog.xcnya.cn', 'example', NULL, NULL),
-    ('RUN', 'Travellings', 'https://www.travellings.cn', 'example', NULL, NULL);
-    ```
- 6. 复制项目根目录的 `.env.example`，复制后的文件更名为 `.env`，并且修改 `.env` 中这些值
+            -- 创建 users 表
+            CREATE TABLE users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user TEXT NOT NULL,
+                token TEXT NOT NULL,
+                role TEXT NOT NULL,
+                lastLogin TEXT
+            );
+
+            -- 插入测试数据
+            INSERT INTO webs (status, name, link, tag, failedReason, lastManualCheck) VALUES
+            ('RUN', 'Example Site 1', 'https://www.luochancy.com/', 'example', NULL, NULL),
+            ('RUN', 'Example Site 2', 'https://blog.xcnya.cn', 'example', NULL, NULL),
+            ('RUN', 'Travellings', 'https://www.travellings.cn', 'example', NULL, NULL);
+            ```
+5. 复制项目根目录的 `.env.example`，复制后的文件更名为 `.env`，并且修改 `.env` 中这些值
   ```plaintext
   DB_HOST=127.0.0.1
   DB_PORT=3306
@@ -112,7 +117,7 @@
   DB_PASSWORD=root
   ```
 
-#### 以无 Token 模式运行
+### 以无 Token 模式运行
 
 ```sh
 pnpm run dev-public
@@ -120,7 +125,7 @@ pnpm run dev-public
 
 启动应用程序后，应用程序将以无 Token 模式运行，直接检查数据库中全部的域名。
 
-#### 以有 Token 模式运行
+### 以有 Token 模式运行
 
 需要在 `.env` 配置 Bot/开往 API，以及 REDIS 服务器才能启动
 
@@ -153,6 +158,7 @@ screenshot - 截图站点
   - Bot 工具类实现放在 `src/bot/utils` 目录
 - 工具（外置函数）放在 `src/utils` 目录
 - 构建产物放在 `dist` 目录
+- 项目相关脚本放在 `scripts` 目录
 
 ## 关于贡献
 
