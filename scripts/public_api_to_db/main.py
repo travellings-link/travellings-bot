@@ -31,7 +31,7 @@ def main() -> None:
     # 写入 mysql 数据库
 
     # 连接到 MySQL 数据库
-    # 连接参数和自述文档一致
+    # 默认连接参数和自述文档一致
     conn = mysql.connector.connect(
         host=config_data["host"],
         user=config_data["user"],
