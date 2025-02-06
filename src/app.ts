@@ -85,10 +85,13 @@ if (isCLIMode) {
 
 	// 进行 Axios 检查，使用 asyncPool 限制同时查询数
 	await asyncPool(config.AXIOS_CHECK_MAX_CONCURRENT, urls, async (url) => {
-		logger.info(`axiosCheck 开始巡查站点 ${url}`, "APP");
+		logger.info(`axiosCheck 开始巡查站点 \x1b[0m${url}\x1b[34m`, "APP");
 		await axiosCheck(undefined, url).then((axiosResult) => {
 			if (!axiosResult) {
-				logger.err(`${url} 未能获取到 axiosCheck 的结果`, "APP");
+				logger.err(
+					`\x1b[0m${url}\x1b[34m 未能获取到 axiosCheck 的结果`,
+					"APP",
+				);
 			} else {
 				if (siteResults.results[url]) {
 					siteResults.results[url]["axiosCheck"]["status"] =
@@ -102,10 +105,13 @@ if (isCLIMode) {
 
 	// 进行 Browser 检查，使用 asyncPool 限制同时查询数
 	await asyncPool(config.BROWSER_CHECK_MAX_CONCURRENT, urls, async (url) => {
-		logger.info(`browserCheck 开始巡查站点 ${url}`, "APP");
+		logger.info(`browserCheck 开始巡查站点 \x1b[0m${url}\x1b[34m`, "APP");
 		await browserCheck(undefined, url).then((browserResult) => {
 			if (!browserResult) {
-				logger.err(`${url} 未能获取到 browserCheck 的结果`, "APP");
+				logger.err(
+					`\x1b[0m${url}\x1b[34m 未能获取到 browserCheck 的结果`,
+					"APP",
+				);
 			} else {
 				if (siteResults.results[url]) {
 					siteResults.results[url]["browserCheck"]["status"] =

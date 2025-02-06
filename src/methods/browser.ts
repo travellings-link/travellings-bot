@@ -323,13 +323,19 @@ async function checkSingleURL(
 		const pageContent = await page.content();
 
 		if (checkPageContent(pageContent)) {
-			log.info(`URL >> ${siteURL}, Result >> RUN`, "BROWSER");
+			log.info(
+				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[32mRUN\x1b[34m,`,
+				"BROWSER",
+			);
 			return {
 				siteURL,
 				status: "RUN",
 			};
 		} else {
-			log.info(`URL >> ${siteURL}, Result >> LOST`, "BROWSER");
+			log.info(
+				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31mLOST\x1b[34m,`,
+				"BROWSER",
+			);
 			return {
 				siteURL,
 				status: "LOST",
@@ -337,7 +343,7 @@ async function checkSingleURL(
 		}
 	} catch (error) {
 		log.info(
-			`URL >> ${siteURL}, Result >> ERROR, Reason >> ${(error as Error).message}`,
+			`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31mERROR\x1b[34m, Reason >> ${(error as Error).message}`,
 			"BROWSER",
 		);
 		return {

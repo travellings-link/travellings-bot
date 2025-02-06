@@ -233,10 +233,17 @@ async function checkSingleURL(
 			}
 		}
 	} finally {
-		axios_logger.info(
-			`URL >> ${result.link}, Result >> ${result.status}, Reason >> ${result.failedReason}`,
-			"AXIOS",
-		);
+		if (result.status === "RUN") {
+			axios_logger.info(
+				`URL >> \x1b[0m${result.link}\x1b[34m, Result >> \x1b[32m${result.status}\x1b[34m, Reason >> ${result.failedReason}`,
+				"AXIOS",
+			);
+		} else {
+			axios_logger.info(
+				`URL >> \x1b[0m${result.link}\x1b[34m, Result >> \x1b[31m${result.status}\x1b[34m, Reason >> ${result.failedReason}`,
+				"AXIOS",
+			);
+		}
 	}
 	return {
 		siteURL,
