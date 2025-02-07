@@ -19,27 +19,7 @@
 - **浏览器自动化**: Puppeteer
 - **第三方服务**: Lark Node.js SDK
 
-## 在生产环境部署
-
-1. 安装 pnpm：
-    ```sh
-    npm install -g pnpm
-    ```
-2. 安装依赖：
-    ```sh
-    pnpm install
-    ```
-3. 构建项目：
-    ```sh
-    pnpm run build
-    ```
-4. 启动生产服务器：
-    ```sh
-    pnpm run start
-    ```
-
-
-## 在开发环境部署
+## 以无数据库模式运行（CLI 模式）
 
 ### 事先准备
 
@@ -51,23 +31,114 @@
     ```sh
     pnpm install
     ```
-3. 本地部署 MYSQL （这里假设本地已经安装完毕 docker 环境，包括 docker-cli 工具）：
+3. 创建 commit 钩子（如果你无需提交代码，可跳过这步）
+    ```sh
+    pnpm prepare
+    ```
+
+### 进行查询
+
+```sh
+pnpm cli https://www.travellings.cn/
+```
+
+查询结果将会保存在 `results.json`
+
+结果示例
+
+```json
+{
+	"results": {
+		"https://www.travellings.cn/": {
+			"browserCheck": {
+				"status": "RUN"
+			},
+			"axiosCheck": {
+				"status": "RUN",
+				"failedReason": null
+			}
+		}
+	}
+}
+```
+
+此模式下：
+
+- 异步查询
+- 无需数据库：程序可以在没有数据库连接的情况下运行，适用于快速测试和调试。
+- 命令行参数：通过命令行传递参数，指定要执行的操作或要检查的 URL。
+- 自动化：适用于自动化脚本和批处理任务，可以集成到 CI/CD 管道中。
+
+支持一次性传入多个网址如：
+
+```sh
+pnpm cli https://www.travellings.cn/ https://example.com
+```
+
+结果示例
+
+```json
+{
+	"results": {
+		"https://www.travellings.cn/": {
+			"browserCheck": {
+				"status": "RUN"
+			},
+			"axiosCheck": {
+				"status": "RUN",
+				"failedReason": null
+			}
+		},
+		"https://example.com": {
+			"browserCheck": {
+				"status": "LOST"
+			},
+			"axiosCheck": {
+				"status": "LOST",
+				"failedReason": null
+			}
+		}
+	}
+}
+```
+
+## 以有数据库模式运行
+
+### 事先准备
+
+1. 安装 pnpm：
+    ```sh
+    npm install -g pnpm
+    ```
+2. 安装依赖：
+    ```sh
+    pnpm install
+    ```
+3. 创建 commit 钩子（如果你无需提交代码，可跳过这步）
+    ```sh
+    pnpm prepare
+    ```
+4. 本地部署 MYSQL （这里假设本地已经安装完毕 docker 环境，包括 docker-cli 工具）：
     ```sh
     docker pull mysql
     ```
     ```sh
     docker run --name mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=travellings_bot -p 3306:3306 -d mysql:latest
     ```
-4. 初始化数据库
+5. 初始化数据库
+
     - 使用脚本自动初始化数据库数据
+
         - 根据[脚本自述文件](scripts/public_api_to_db/README.md)操作
 
     - 手动初始化数据库数据
+
         1. 使用任意工具链接 MYSQL 服务器，以 [`mycli`](https://www.mycli.net/) 举例
             ```sh
             mycli -u root -p root
             ```
         2. 输入以下指令创建数据库，以及初始化数据库数据
+
             ```sql
             -- 创建数据库
             CREATE DATABASE travellings_bot;
@@ -108,14 +179,16 @@
             ('RUN', 'Example Site 2', 'https://blog.xcnya.cn', 'example', NULL, NULL),
             ('RUN', 'Travellings', 'https://www.travellings.cn', 'example', NULL, NULL);
             ```
-5. 复制项目根目录的 `.env.example`，复制后的文件更名为 `.env`，并且修改 `.env` 中这些值
-  ```plaintext
-  DB_HOST=127.0.0.1
-  DB_PORT=3306
-  DB_USER=root
-  DB_NAME=travellings_bot
-  DB_PASSWORD=root
-  ```
+
+6. 复制项目根目录的 `.env.example`，复制后的文件更名为 `.env`，并且修改 `.env` 中这些值
+
+```plaintext
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_NAME=travellings_bot
+DB_PASSWORD=root
+```
 
 ### 以无 Token 模式运行
 
@@ -130,8 +203,19 @@ pnpm run dev-public
 需要在 `.env` 配置 Bot/开往 API，以及 REDIS 服务器才能启动
 
 启动开发服务器：
+
 ```sh
 pnpm run dev
+```
+
+### 在生产环境模式运行
+
+需要在 `.env` 配置 Bot/开往 API，以及 REDIS 服务器才能启动
+
+启动生产服务器：
+
+```sh
+pnpm run start
 ```
 
 ## Bot 命令
@@ -152,18 +236,17 @@ screenshot - 截图站点
 - 巡查功能放在 `src/methods` 目录
 - 组件放在 `src/modules` 目录
 - Bot 相关放在 `src/bot` 目录
-  - 平台相关的 Bot 功能放在 `src/bot/adapters` 目录
-  - Bot 命令实现放在 `src/bot/commands` 目录
-  - Bot 中间件实现放在 `src/bot/middlewares` 目录
-  - Bot 工具类实现放在 `src/bot/utils` 目录
+    - 平台相关的 Bot 功能放在 `src/bot/adapters` 目录
+    - Bot 命令实现放在 `src/bot/commands` 目录
+    - Bot 中间件实现放在 `src/bot/middlewares` 目录
+    - Bot 工具类实现放在 `src/bot/utils` 目录
 - 工具（外置函数）放在 `src/utils` 目录
 - 构建产物放在 `dist` 目录
 - 项目相关脚本放在 `scripts` 目录
 
 ## 关于贡献
 
-欢迎为项目提出 [Issue](https://github.com/travellings-link/travellings-bot/issues)、[Pull requests
-](https://github.com/travellings-link/travellings-bot/pulls)。  
+欢迎为项目提出 [Issue](https://github.com/travellings-link/travellings-bot/issues)、[Pull requests ](https://github.com/travellings-link/travellings-bot/pulls)。  
 贡献时请参考本项目已有的 Commit History，规范 Commit message。
 
 ## 版权

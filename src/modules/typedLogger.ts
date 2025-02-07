@@ -2,11 +2,11 @@
 // Migrated Nekologger into ES Module and Typescript.
 // Original author: BLxcwg666
 // Migration Author: Allen You
-
-import moment from "moment-timezone";
 import chalk from "chalk";
 import fs, { WriteStream } from "fs";
+import moment from "moment-timezone";
 import path from "path";
+
 import { config } from "../config";
 
 export function time() {
@@ -57,11 +57,9 @@ export class Logger {
 			this.logStream = fs.createWriteStream(
 				path.join(
 					config.LOG_PATH,
-					`${moment
-						.tz("Asia/Shanghai")
-						.format("YYYY-MM-DD HH-mm-ss")}${suffix}.log`
+					`${moment.tz("Asia/Shanghai").format("YYYY-MM-DD HH-mm-ss")}${suffix}.log`,
 				),
-				{ flags: "a" }
+				{ flags: "a" },
 			);
 		}
 	}

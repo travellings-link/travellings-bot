@@ -20,7 +20,7 @@ export interface BotAdapter {
 	boardcastRichTextMessage(message: RichTextMessage): Promise<void>;
 	registerCommand(
 		commandName: string,
-		onMessageCallback: MessageProcessor
+		onMessageCallback: MessageProcessor,
 	): void;
 	onError(onErrorCallback: ErrorProcessor): void;
 }

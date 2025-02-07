@@ -7,20 +7,19 @@
 // Axios Get Check Websites Util
 // By <huixcwg@gmail.com>
 // 2024/01/16 04:42 CST
-
 // Migrated to ESM & Typescript on 2024/10/10 by Allenyou <i@allenyou.wang>
-
 import axios, { AxiosError } from "axios";
-import { config } from "../config";
 import { Op } from "sequelize";
+
+import { botManager } from "../bot/botManager";
+import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
-import { botManager } from "../bot/botManager";
+import { asyncPool } from "../utils/asyncPool";
 
 const axiosConfig = {
 	headers: {
-		Accept:
-			"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+		Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
 		"Accept-Encoding": "gzip, deflate, br",
 		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
 		"Sec-Ch-Ua":
@@ -49,13 +48,32 @@ function spentTime(input: number) {
 	return `${hours}小时 ${minutes}分 ${seconds}秒`;
 }
 
-export default async function normalCheck(inputID?: number) {
+/**
+ * 检查网站的状态，并根据传入的参数决定检查单个 URL 或者多个网站。
+ *
+ * @param inputID - 可选参数，指定要检查的网站 ID。
+ * @param inputURL - 可选参数，指定要检查的网站 URL。
+ *
+ * @returns {Promise<void | { siteURL: string; status: string; failedReason: string | null }>}
+ * 如果提供了 URL，则返回一个包含 siteURL、status、failedReason 的对象；否则无返回值。
+ */
+export default async function normalCheck(
+	inputID?: number,
+	inputURL?: string,
+): Promise<void | {
+	siteURL: string;
+	status: string;
+	failedReason: string | null;
+}> {
 	const axios_logger = new Logger("_Axios");
 	const startTime = new Date();
 	let webs: WebModel[] = [];
 
-	if (inputID) {
-		// 如果传入参数，则只检查指定的网站
+	if (inputURL) {
+		// 如果传入 URL 参数，则只检查指定 URL 的网站
+		return await checkSingleURL(inputURL, axios_logger);
+	} else if (inputID) {
+		// 如果传入参数，则只检查指定 ID 的网站
 		const site = await WebModel.findOne({
 			where: {
 				id: inputID,
@@ -80,7 +98,7 @@ export default async function normalCheck(inputID?: number) {
 						{ [Op.eq]: null },
 						{
 							[Op.lt]: new Date(
-								new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+								new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
 							),
 						},
 					],
@@ -89,92 +107,27 @@ export default async function normalCheck(inputID?: number) {
 		});
 	}
 
-	let total = 0,
-		run = 0,
-		lost = 0,
-		errorCount = 0,
-		timeout = 0,
-		fourxx = 0,
-		fivexx = 0;
+	const statusCounts = {
+		total: 0,
+		run: 0,
+		lost: 0,
+		errorCount: 0,
+		timeout: 0,
+		fourxx: 0,
+		fivexx: 0,
+	};
 
-	for (const web of webs) {
-		total++;
-
-		try {
-			const response = await axios.get(web.link, axiosConfig);
-			let data = response.data;
-
-			if (Buffer.isBuffer(data)) {
-				data = data.toString(); // 将 Buffer 转换为字符串
-			} else if (typeof data !== "string") {
-				data = JSON.stringify(data); // 将非字符串类型转换为 JSON 字符串
-			}
-
-			const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
-
-			if (
-				response.status === 200 &&
-				(response.data.includes("travelling") || response.data.includes("开往"))
-			) {
-				web.status = "RUN";
-				web.failedReason = null;
-				run++;
-			} else if (response.status.toString().startsWith("4")) {
-				web.status = response.status.toString();
-				web.failedReason = `Client Error：${response.status}, Title：${title}`;
-				fourxx++;
-			} else if (response.status.toString().startsWith("5")) {
-				web.status = response.status.toString();
-				web.failedReason = `Server Error：${response.status}, Title：${title}`;
-				fivexx++;
-			} else {
-				web.status = "LOST";
-				web.failedReason = null;
-				lost++;
-			}
-			web.lastManualCheck = null;
-			axios_logger.info(
-				`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
-				"AXIOS"
-			);
-		} catch (error) {
-			if (error instanceof AxiosError) {
-				if (error.code === "ECONNABORTED") {
-					web.status = "TIMEOUT";
-					web.failedReason = `Axios Error：连接超时（预设时间：${config.LOAD_TIMEOUT} 秒）`;
-					timeout++;
-				} else if (error.code === "ENOTFOUND") {
-					web.status = "ERROR";
-					web.failedReason = `Axios Error：DNS 解析失败（域名不存在）`;
-					errorCount++;
-				} else if (error.code === "ECONNREFUSED") {
-					web.status = "ERROR";
-					web.failedReason = `Axios Error：连接被拒绝（ECONNREFUSED）`;
-					errorCount++;
-				} else if (error.code === "ECONNRESET") {
-					web.status = "ERROR";
-					web.failedReason = `Axios Error：连接被重置（ECONNRESET）`;
-					errorCount++;
-				} else {
-					web.status = "ERROR";
-					web.failedReason = `Axios Error：${error.message}`;
-					errorCount++;
-				}
-				web.lastManualCheck = null;
-				axios_logger.info(
-					`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
-					"AXIOS"
-				);
-			}
-		} finally {
-			await web.save();
-		}
-	}
+	// 使用 asyncPool 限制同时查询数
+	const maxConcurrent = config.AXIOS_CHECK_MAX_CONCURRENT;
+	await asyncPool(maxConcurrent, webs, async (web) => {
+		await checkSite(web, axios_logger, statusCounts);
+		statusCounts["total"]++;
+	});
 
 	const endTime = new Date();
 	const input = (endTime.getTime() - startTime.getTime()) / 1000;
 	// 清除 Redis 缓存
-	if (process.env["PUBLIC_MODE"] !== 'true'){
+	if (process.env["PUBLIC_MODE"] !== "true") {
 		try {
 			await axios.get(`${config.API_URL}/all`);
 			await axios.delete(`${config.API_URL}/action/purgeCache`, {
@@ -186,8 +139,8 @@ export default async function normalCheck(inputID?: number) {
 	}
 
 	const stats = `检测耗时：${spentTime(
-		input
-	)}｜总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`;
+		input,
+	)}｜总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`;
 	axios_logger.info(` 检测完成 >> ${stats}`, "AXIOS");
 	axios_logger.close();
 	botManager.boardcastRichTextMessage([
@@ -200,7 +153,7 @@ export default async function normalCheck(inputID?: number) {
 		[
 			{
 				type: "text",
-				content: `总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个`,
+				content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
 			},
 		],
 		[{ type: "text", content: "" }],
@@ -212,4 +165,182 @@ export default async function normalCheck(inputID?: number) {
 	// 		input
 	// 	)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：巡查所有站点`
 	// );
+}
+
+/**
+ * 检查单个 URL 的网站状态。
+ *
+ * @param siteURL - 要检查的网站 URL。
+ * @param axios_logger - 日志记录器实例
+ * @returns {Promise<{ siteURL: string; status: string; failedReason: string | null }>} - 返回一个包含 siteURL、status、failedReason 的对象的 Promise。
+ */
+async function checkSingleURL(
+	siteURL: string,
+	axios_logger: Logger,
+): Promise<{ siteURL: string; status: string; failedReason: string | null }> {
+	const result = {
+		link: siteURL,
+		status: "",
+		failedReason: null as string | null,
+	};
+
+	try {
+		const response = await axios.get(result.link, axiosConfig);
+		let data = response.data;
+
+		if (Buffer.isBuffer(data)) {
+			data = data.toString(); // 将 Buffer 转换为字符串
+		} else if (typeof data !== "string") {
+			data = JSON.stringify(data); // 将非字符串类型转换为 JSON 字符串
+		}
+
+		const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
+
+		if (
+			response.status === 200 &&
+			(response.data.includes("travelling") ||
+				response.data.includes("开往"))
+		) {
+			result.status = "RUN";
+			result.failedReason = null;
+		} else if (response.status.toString().startsWith("4")) {
+			result.status = response.status.toString();
+			result.failedReason = `Client Error：${response.status}, Title：${title}`;
+		} else if (response.status.toString().startsWith("5")) {
+			result.status = response.status.toString();
+			result.failedReason = `Server Error：${response.status}, Title：${title}`;
+		} else {
+			result.status = "LOST";
+			result.failedReason = null;
+		}
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			if (error.code === "ECONNABORTED") {
+				result.status = "TIMEOUT";
+				result.failedReason = `Axios Error：连接超时（预设时间：${config.LOAD_TIMEOUT} 秒）`;
+			} else if (error.code === "ENOTFOUND") {
+				result.status = "ERROR";
+				result.failedReason = `Axios Error：DNS 解析失败（域名不存在）`;
+			} else if (error.code === "ECONNREFUSED") {
+				result.status = "ERROR";
+				result.failedReason = `Axios Error：连接被拒绝（ECONNREFUSED）`;
+			} else if (error.code === "ECONNRESET") {
+				result.status = "ERROR";
+				result.failedReason = `Axios Error：连接被重置（ECONNRESET）`;
+			} else {
+				result.status = "ERROR";
+				result.failedReason = `Axios Error：${error.message}`;
+			}
+		}
+	} finally {
+		if (result.status === "RUN") {
+			axios_logger.info(
+				`URL >> \x1b[0m${result.link}\x1b[34m, Result >> \x1b[32m${result.status}\x1b[34m, Reason >> ${result.failedReason}`,
+				"AXIOS",
+			);
+		} else {
+			axios_logger.info(
+				`URL >> \x1b[0m${result.link}\x1b[34m, Result >> \x1b[31m${result.status}\x1b[34m, Reason >> ${result.failedReason}`,
+				"AXIOS",
+			);
+		}
+	}
+	return {
+		siteURL,
+		status: result.status,
+		failedReason: result.failedReason,
+	};
+}
+
+/**
+ * 检查网站的状态，并更新数据库中的状态信息。
+ *
+ * @param web - 要检查的 WebModel 实例
+ * @param axios_logger - 日志记录器实例
+ * @param statusCounts - 一个对象，用于记录不同状态的计数
+ * @returns {Promise<void>} - 异步函数，无返回值
+ */
+async function checkSite(
+	web: WebModel,
+	axios_logger: Logger,
+	statusCounts: {
+		total: number;
+		run: number;
+		lost: number;
+		errorCount: number;
+		timeout: number;
+		fourxx: number;
+		fivexx: number;
+	},
+) {
+	try {
+		const response = await axios.get(web.link, axiosConfig);
+		let data = response.data;
+
+		if (Buffer.isBuffer(data)) {
+			data = data.toString(); // 将 Buffer 转换为字符串
+		} else if (typeof data !== "string") {
+			data = JSON.stringify(data); // 将非字符串类型转换为 JSON 字符串
+		}
+
+		const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
+
+		if (
+			response.status === 200 &&
+			(response.data.includes("travelling") ||
+				response.data.includes("开往"))
+		) {
+			web.status = "RUN";
+			web.failedReason = null;
+			statusCounts["run"]++;
+		} else if (response.status.toString().startsWith("4")) {
+			web.status = response.status.toString();
+			web.failedReason = `Client Error：${response.status}, Title：${title}`;
+			statusCounts["fourxx"]++;
+		} else if (response.status.toString().startsWith("5")) {
+			web.status = response.status.toString();
+			web.failedReason = `Server Error：${response.status}, Title：${title}`;
+			statusCounts["fivexx"]++;
+		} else {
+			web.status = "LOST";
+			web.failedReason = null;
+			statusCounts["lost"]++;
+		}
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			if (error.code === "ECONNABORTED") {
+				web.status = "TIMEOUT";
+				web.failedReason = `Axios Error：连接超时（预设时间：${config.LOAD_TIMEOUT} 秒）`;
+				statusCounts["timeout"]++;
+			} else if (error.code === "ENOTFOUND") {
+				web.status = "ERROR";
+				web.failedReason = `Axios Error：DNS 解析失败（域名不存在）`;
+				statusCounts["errorCount"]++;
+			} else if (error.code === "ECONNREFUSED") {
+				web.status = "ERROR";
+				web.failedReason = `Axios Error：连接被拒绝（ECONNREFUSED）`;
+				statusCounts["errorCount"]++;
+			} else if (error.code === "ECONNRESET") {
+				web.status = "ERROR";
+				web.failedReason = `Axios Error：连接被重置（ECONNRESET）`;
+				statusCounts["errorCount"]++;
+			} else {
+				web.status = "ERROR";
+				web.failedReason = `Axios Error：${error.message}`;
+				statusCounts["errorCount"]++;
+			}
+		} else {
+			web.status = "ERROR";
+			web.failedReason =
+				error instanceof Error ? error.message : String(error);
+			statusCounts["errorCount"]++;
+		}
+	} finally {
+		web.lastManualCheck = null;
+		axios_logger.info(
+			`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
+			"AXIOS",
+		);
+		await web.save();
+	}
 }
