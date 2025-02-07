@@ -1,0 +1,28 @@
+# This is an additional periodic task to check the expiration of the travellings-cn-Project domain.
+name: Periodic Backup Members List
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 17 * * *'
+
+jobs:
+  build:
+    name: backup members list and upload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Donwload required lib
+        run: |
+          pip install -r scripts/backup_member_list/requirements.txt
+      - name: Save all.json to local
+        run: |
+          python scripts/backup_member_list/main.py
+      - name: Upload all.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: members-list
+          path: tmp/all.json
+          compression-level: 9
