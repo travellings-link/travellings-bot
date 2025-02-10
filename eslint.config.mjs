@@ -1,64 +1,44 @@
-import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
-import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import { includeIgnoreFile } from "@eslint/compat";
+import pluginJs from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
-import _import from "eslint-plugin-import";
+import eslintPluginImportX from "eslint-plugin-import-x";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import tseslint from "typescript-eslint";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-	baseDirectory: __dirname,
-	recommendedConfig: js.configs.recommended,
-	allConfig: js.configs.all,
-});
+const gitignorePath = path.resolve(__dirname, ".gitignore");
 
-export default [
+export default tseslint.config(
+	includeIgnoreFile(gitignorePath),
+	pluginJs.configs.recommended,
+	eslintPluginImportX.flatConfigs.recommended,
+	eslintPluginImportX.flatConfigs.typescript,
+	tseslint.configs.recommended,
 	{
-		ignores: ["dist/**/*", "eslint.config.mjs"],
-	},
-	...fixupConfigRules(
-		compat.extends(
-			"eslint:recommended",
-			"plugin:@typescript-eslint/recommended",
-			"plugin:import/recommended",
-			"plugin:import/typescript",
-		),
-	),
-	{
-		plugins: {
-			"@typescript-eslint": fixupPluginRules(typescriptEslint),
-			import: fixupPluginRules(_import),
+		files: [
+			"**/*.js",
+			"**/*.cjs",
+			"**/*.mjs",
+			"**/*.cts",
+			"**/*.ts",
+			"**/*.mts",
+		],
+		ignores: ["eslint.config.mjs"],
+		languageOptions: {
+			parser: tsParser,
+			ecmaVersion: "latest",
+			sourceType: "module",
 		},
-
 		languageOptions: {
 			globals: {
 				...globals.node,
 				...globals.commonjs,
 			},
-
-			parser: tsParser,
-			ecmaVersion: 5,
-			sourceType: "module",
-
-			parserOptions: {
-				project: "./tsconfig.json",
-			},
 		},
-
-		settings: {
-			"import/parsers": {
-				"@typescript-eslint/parser": [".ts", ".tsx"],
-			},
-
-			"import/resolver": {
-				typescript: true,
-			},
-		},
-
-		rules: {},
 	},
-];
+	eslintPluginPrettierRecommended,
+);
