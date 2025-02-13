@@ -54,7 +54,7 @@ async function screenshotByUrl(url: string) {
 			page.waitForNavigation({ waitUntil: "networkidle0" }),
 		]);
 		logger.debug("Navigation finalized.", "SCREENSHOT");
-		screenshotBuffer = await page.screenshot();
+		screenshotBuffer = Buffer.from(await page.screenshot());
 		logger.debug("Screen shotted.", "SCREENSHOT");
 	} catch (e) {
 		if ((e as Error)["message"] !== undefined) {
