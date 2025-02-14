@@ -10,6 +10,7 @@
 // 2024/01/16 18:10 CST
 import { writeFileSync } from "fs";
 import { schedule } from "node-cron";
+import { Op } from "sequelize";
 
 import { LarkAdapter } from "./bot/adapters/larkAdapter";
 import { TelegramAdapter } from "./bot/adapters/telegramAdapter";
@@ -25,6 +26,7 @@ import { config } from "./config";
 import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
 import sql from "./modules/sqlConfig";
+import { WebModel } from "./modules/sqlModel";
 import { logger } from "./modules/typedLogger";
 import { asyncPool } from "./utils/asyncPool";
 
@@ -36,6 +38,45 @@ async function checkAll() {
 	logger.info("✓ 开始巡查站点", "APP");
 	await axiosCheck();
 	await browserCheck();
+
+	const runWebsCount = await WebModel.count({
+		where: {
+			status: {
+				[Op.in]: ["RUN"],
+			},
+			lastManualCheck: {
+				[Op.or]: [
+					{ [Op.eq]: null },
+					{
+						[Op.lt]: new Date(
+							new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
+						),
+					},
+				],
+			},
+		},
+	});
+	const allWebsCount = await WebModel.count({
+		where: {
+			status: {
+				[Op.notIn]: ["WAIT"],
+			},
+			lastManualCheck: {
+				[Op.or]: [
+					{ [Op.eq]: null },
+					{
+						[Op.lt]: new Date(
+							new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
+						),
+					},
+				],
+			},
+		},
+	});
+	// 计算百分比：检查为 RUN 的站点数/需要检查的站点数
+	const runWebsPercentage = (runWebsCount / allWebsCount) * 100;
+
+	logger.ok(`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%`, "APP");
 	logger.ok("△ 检测完成，Sleep.", "APP");
 }
 

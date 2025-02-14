@@ -19,6 +19,7 @@ import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
+import { checkPageContent } from "../utils/checkPageContent";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
@@ -38,6 +39,7 @@ function spentTime(input: number) {
  *
  * @param inputID - 可选参数，指定要检查的网站 ID。
  * @param inputURL - 可选参数，指定要检查的网站 URL。
+ * @param looseMode - 可选参数，在检查时使用宽松模式。
  *
  * @returns {Promise<void | { siteURL: string; status: 'RUN' | 'LOST' | 'ERROR' | "UNKNOWN"}>}
  * 如果提供了 URL，则返回一个包含 siteURL 和 status 的对象；否则无返回值
@@ -57,6 +59,7 @@ function spentTime(input: number) {
 export default async function browserCheck(
 	inputID?: number,
 	inputURL?: string,
+	looseMode?: boolean,
 ): Promise<void | {
 	siteURL: string;
 	status: "RUN" | "LOST" | "ERROR" | "UNKNOWN";
@@ -123,6 +126,7 @@ export default async function browserCheck(
 				page,
 				inputURL,
 				browser_logger,
+				looseMode,
 			);
 		} else if (inputID) {
 			// 如果传入 ID 参数，则只检查指定 ID 的网站
@@ -133,7 +137,13 @@ export default async function browserCheck(
 			});
 
 			if (site) {
-				await checkSite(page, site, browser_logger, statusCounts);
+				await checkSite(
+					page,
+					site,
+					browser_logger,
+					statusCounts,
+					looseMode,
+				);
 				statusCounts["total"]++;
 			} else {
 				browser_logger.err("指定的 ID 不存在", "BROWSER");
@@ -177,7 +187,13 @@ export default async function browserCheck(
 			// 使用 asyncPool 限制同时查询数
 			const maxConcurrent = config.BROWSER_CHECK_MAX_CONCURRENT;
 			await asyncPool(maxConcurrent, sitesToCheck, async (site) => {
-				await checkSite(page, site, browser_logger, statusCounts);
+				await checkSite(
+					page,
+					site,
+					browser_logger,
+					statusCounts,
+					looseMode,
+				);
 				statusCounts["total"]++;
 			});
 		}
@@ -275,36 +291,12 @@ async function pushToLark(site: WebModel) {
 }
 
 /**
- * 检查给定页面内容是否包含特定关键字或链接。
- *
- * 该函数会搜索页面内容中是否存在某些英文和中文关键字，以及特定的链接。它旨在判断内容是否与 “travelling” 或 “开往” 相关，并检测是否包括任何许可的外部链接。
- *
- * @param pageContent - 要检查的页面内容。
- * @returns 如果页面内容包含任意指定的关键字或链接，则返回 `true`，否则返回 `false`。
- */
-function checkPageContent(pageContent: string) {
-	// 可能的绕过方法 -> 站点挂个无实际跳转作用的文字
-	const includeEN = pageContent.includes("travelling");
-	const includeZH = pageContent.includes("开往");
-
-	// 可能的绕过方法 -> 站点挂个假链接但是无实际跳转作用/挂个不可见的链接
-	// 许可的开往跳转外链
-	const links = [
-		"https://www.travellings.cn/go.html",
-		"https://www.travellings.cn/plain.html",
-		"https://www.travellings.cn/coder-1024.html",
-		"https://www.travellings.cn/go-by-clouds.html",
-	];
-	const includeLink = links.some((link) => pageContent.includes(link));
-	return includeEN || includeZH || includeLink;
-}
-
-/**
  * 检查单个 URL 的网站状态。
  *
  * @param page - Puppeteer 页面实例。
  * @param siteURL - 要检查的网站 URL。
  * @param log - 日志记录器实例。
+ * @param looseMode - 可选参数，在检查时使用宽松模式。
  *
  * @returns {Promise<{ siteURL: string; status: 'RUN' | 'LOST' | 'ERROR' }>}
  * 返回一个包含 siteURL 和 status 的对象，status 的可能值包括 'RUN'、'LOST' 和 'ERROR'
@@ -313,6 +305,7 @@ async function checkSingleURL(
 	page: Page,
 	siteURL: string,
 	log: Logger,
+	looseMode?: boolean,
 ): Promise<{ siteURL: string; status: "RUN" | "LOST" | "ERROR" }> {
 	try {
 		await Promise.all([
@@ -322,7 +315,7 @@ async function checkSingleURL(
 
 		const pageContent = await page.content();
 
-		if (checkPageContent(pageContent)) {
+		if (checkPageContent(pageContent, looseMode)) {
 			log.info(
 				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[32mRUN\x1b[34m,`,
 				"BROWSER",
@@ -360,6 +353,7 @@ async function checkSingleURL(
  * @param site - 要检查的站点信息。
  * @param log - 日志记录器实例。
  * @param statusCounts - 一个对象，用于记录不同状态的计数
+ * @param looseMode - 可选参数，在检查时是否启用宽松模式。
  *
  * @returns {Promise<void>} - 异步函数，无返回值。
  */
@@ -376,6 +370,7 @@ async function checkSite(
 		fourxx: number;
 		fivexx: number;
 	},
+	looseMode?: boolean,
 ) {
 	try {
 		await Promise.all([
@@ -389,7 +384,7 @@ async function checkSite(
 		} else {
 			const pageContent = await page.content();
 
-			if (checkPageContent(pageContent)) {
+			if (checkPageContent(pageContent, looseMode)) {
 				await WebModel.update(
 					{
 						status: "RUN",

@@ -11,6 +11,9 @@ export const screenshot: MessageProcessor = async (ctx) => {
 			try {
 				ctx.reply("正在截图，可能需要亿点点时间...");
 				const screenshotBuffer = await screenshotByUrl(input);
+				if (!screenshotBuffer) {
+					throw new Error("截图失败，请稍后再试");
+				}
 				await ctx.replyWithPhoto(screenshotBuffer);
 			} catch (error) {
 				ctx.reply((error as Error).message);
@@ -22,6 +25,9 @@ export const screenshot: MessageProcessor = async (ctx) => {
 		try {
 			ctx.reply("正在截图，可能需要亿点点时间...");
 			const screenshotBuffer = await screenshotByID(parseInt(input));
+			if (!screenshotBuffer) {
+				throw new Error("截图失败，请稍后再试");
+			}
 			await ctx.replyWithPhoto(screenshotBuffer);
 		} catch (error) {
 			ctx.reply((error as Error).message);

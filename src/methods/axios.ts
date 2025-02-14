@@ -16,6 +16,7 @@ import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
+import { checkPageContent } from "../utils/checkPageContent";
 
 const axiosConfig = {
 	headers: {
@@ -53,6 +54,7 @@ function spentTime(input: number) {
  *
  * @param inputID - 可选参数，指定要检查的网站 ID。
  * @param inputURL - 可选参数，指定要检查的网站 URL。
+ * @param looseMode - 可选参数，在检查时使用宽松模式。
  *
  * @returns {Promise<void | { siteURL: string; status: string; failedReason: string | null }>}
  * 如果提供了 URL，则返回一个包含 siteURL、status、failedReason 的对象；否则无返回值。
@@ -60,6 +62,7 @@ function spentTime(input: number) {
 export default async function normalCheck(
 	inputID?: number,
 	inputURL?: string,
+	looseMode?: boolean,
 ): Promise<void | {
 	siteURL: string;
 	status: string;
@@ -71,7 +74,7 @@ export default async function normalCheck(
 
 	if (inputURL) {
 		// 如果传入 URL 参数，则只检查指定 URL 的网站
-		return await checkSingleURL(inputURL, axios_logger);
+		return await checkSingleURL(inputURL, axios_logger, looseMode);
 	} else if (inputID) {
 		// 如果传入参数，则只检查指定 ID 的网站
 		const site = await WebModel.findOne({
@@ -120,7 +123,7 @@ export default async function normalCheck(
 	// 使用 asyncPool 限制同时查询数
 	const maxConcurrent = config.AXIOS_CHECK_MAX_CONCURRENT;
 	await asyncPool(maxConcurrent, webs, async (web) => {
-		await checkSite(web, axios_logger, statusCounts);
+		await checkSite(web, axios_logger, statusCounts, looseMode);
 		statusCounts["total"]++;
 	});
 
@@ -172,11 +175,13 @@ export default async function normalCheck(
  *
  * @param siteURL - 要检查的网站 URL。
  * @param axios_logger - 日志记录器实例
+ * @param looseMode - 可选参数，在检查时使用宽松模式。
  * @returns {Promise<{ siteURL: string; status: string; failedReason: string | null }>} - 返回一个包含 siteURL、status、failedReason 的对象的 Promise。
  */
 async function checkSingleURL(
 	siteURL: string,
 	axios_logger: Logger,
+	looseMode?: boolean,
 ): Promise<{ siteURL: string; status: string; failedReason: string | null }> {
 	const result = {
 		link: siteURL,
@@ -198,8 +203,7 @@ async function checkSingleURL(
 
 		if (
 			response.status === 200 &&
-			(response.data.includes("travelling") ||
-				response.data.includes("开往"))
+			checkPageContent(response.data, looseMode)
 		) {
 			result.status = "RUN";
 			result.failedReason = null;
@@ -258,6 +262,7 @@ async function checkSingleURL(
  * @param web - 要检查的 WebModel 实例
  * @param axios_logger - 日志记录器实例
  * @param statusCounts - 一个对象，用于记录不同状态的计数
+ * @param looseMode - 可选参数，在检查时使用宽松模式。
  * @returns {Promise<void>} - 异步函数，无返回值
  */
 async function checkSite(
@@ -272,6 +277,7 @@ async function checkSite(
 		fourxx: number;
 		fivexx: number;
 	},
+	looseMode?: boolean,
 ) {
 	try {
 		const response = await axios.get(web.link, axiosConfig);
@@ -287,8 +293,7 @@ async function checkSite(
 
 		if (
 			response.status === 200 &&
-			(response.data.includes("travelling") ||
-				response.data.includes("开往"))
+			checkPageContent(response.data, looseMode)
 		) {
 			web.status = "RUN";
 			web.failedReason = null;
