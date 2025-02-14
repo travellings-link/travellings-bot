@@ -76,20 +76,7 @@ async function checkAll() {
 	// 计算百分比：检查为 RUN 的站点数/需要检查的站点数
 	const runWebsPercentage = (runWebsCount / allWebsCount) * 100;
 
-	if (runWebsPercentage >= 50) {
-		logger.info(
-			`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%`,
-			"APP",
-		);
-	} else {
-		logger.warn(
-			`⚠ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%`,
-			"APP",
-		);
-		logger.info(`✓ 开始进行宽松模式检查`, "APP");
-		await axiosCheck(undefined, undefined, true);
-		await browserCheck(undefined, undefined, true);
-	}
+	logger.ok(`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%`, "APP");
 	logger.ok("△ 检测完成，Sleep.", "APP");
 }
 
