@@ -102,7 +102,7 @@ interface SiteResults {
 	results: {
 		[key: string]: {
 			browserCheck: {
-				status: "RUN" | "LOST" | "ERROR" | "UNKNOWN";
+				status: string;
 			};
 			axiosCheck: { status: string; failedReason: string | null };
 		};

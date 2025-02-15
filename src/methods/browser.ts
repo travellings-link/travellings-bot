@@ -41,8 +41,8 @@ function spentTime(input: number) {
  * @param inputURL - 可选参数，指定要检查的网站 URL。
  * @param looseMode - 可选参数，在检查时使用宽松模式。
  *
- * @returns {Promise<void | { siteURL: string; status: 'RUN' | 'LOST' | 'ERROR' | "UNKNOWN"}>}
- * 如果提供了 URL，则返回一个包含 siteURL 和 status 的对象；否则无返回值
+ * @returns {Promise<void | { siteURL: string; status: string}>}
+ * 如果提供了 URL，则返回一个包含 siteURL 和 status 的对象；否则无返回值；status 可能是 "RUN" | "LOST" | "ERROR" | "UNKNOWN" | HTTP 状态码
  *
  * @example
  * // 检查指定 ID 的网站
@@ -62,7 +62,7 @@ export default async function browserCheck(
 	looseMode?: boolean,
 ): Promise<void | {
 	siteURL: string;
-	status: "RUN" | "LOST" | "ERROR" | "UNKNOWN";
+	status: string;
 }> {
 	const statusCounts = {
 		total: 0,
@@ -116,7 +116,7 @@ export default async function browserCheck(
 
 	let cliModeResult: {
 		siteURL: string;
-		status: "RUN" | "LOST" | "ERROR" | "UNKNOWN";
+		status: string; // "RUN" | "LOST" | "ERROR" | "UNKNOWN" | HTTP 状态码
 	} = { siteURL: "UNKNOWN", status: "UNKNOWN" };
 
 	try {
@@ -298,24 +298,36 @@ async function pushToLark(site: WebModel) {
  * @param log - 日志记录器实例。
  * @param looseMode - 可选参数，在检查时使用宽松模式。
  *
- * @returns {Promise<{ siteURL: string; status: 'RUN' | 'LOST' | 'ERROR' }>}
- * 返回一个包含 siteURL 和 status 的对象，status 的可能值包括 'RUN'、'LOST' 和 'ERROR'
+ * @returns {Promise<{ siteURL: string; status: string }>}
+ * 返回一个包含 siteURL 和 status 的对象，status 的可能值包括 'RUN'、'LOST'、'ERROR'、以及 HTTP 状态码
  */
 async function checkSingleURL(
 	page: Page,
 	siteURL: string,
 	log: Logger,
 	looseMode?: boolean,
-): Promise<{ siteURL: string; status: "RUN" | "LOST" | "ERROR" }> {
+): Promise<{ siteURL: string; status: string }> {
 	try {
-		await Promise.all([
+		const [response] = await Promise.all([
 			page.goto(siteURL),
 			page.waitForNavigation({ waitUntil: "networkidle0" }),
 		]);
 
-		const pageContent = await page.content();
+		if (response && response.status() !== 200) {
+			// 返回码不为 200
+			// response.ok() 为 true 是 200-299，但是可能有如 204 No Content，所以归入此类
+			log.info(
+				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31m${response.status()}\x1b[34m`,
+				"BROWSER",
+			);
+			return {
+				siteURL,
+				status: response.status().toString(),
+			};
+		}
 
-		if (checkPageContent(pageContent, looseMode)) {
+		// 进行内容检查
+		if (checkPageContent(await page.content(), looseMode)) {
 			log.info(
 				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[32mRUN\x1b[34m,`,
 				"BROWSER",
@@ -324,16 +336,17 @@ async function checkSingleURL(
 				siteURL,
 				status: "RUN",
 			};
-		} else {
-			log.info(
-				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31mLOST\x1b[34m,`,
-				"BROWSER",
-			);
-			return {
-				siteURL,
-				status: "LOST",
-			};
 		}
+
+		// 未通过内容检查
+		log.info(
+			`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31mLOST\x1b[34m,`,
+			"BROWSER",
+		);
+		return {
+			siteURL,
+			status: "LOST",
+		};
 	} catch (error) {
 		log.info(
 			`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31mERROR\x1b[34m, Reason >> ${(error as Error).message}`,
@@ -373,48 +386,78 @@ async function checkSite(
 	looseMode?: boolean,
 ) {
 	try {
-		await Promise.all([
+		const [response] = await Promise.all([
 			page.goto(site.link),
 			page.waitForNavigation({ waitUntil: "networkidle0" }),
 		]);
 
+		if (response && response.status() !== 200) {
+			// 返回码不为 200
+			// response.ok() 为 true 是 200-299，但是可能有如 204 No Content，所以归入此类
+			await WebModel.update(
+				{
+					status: response.status().toString(),
+					failedReason: null,
+					lastManualCheck: null,
+				},
+				{ where: { id: site.id } },
+			);
+			let failedReason: string = "";
+			if (response.status().toString().startsWith("4")) {
+				failedReason = "Client Error";
+				statusCounts["fourxx"]++;
+			} else if (response.status().toString().startsWith("5")) {
+				failedReason = "Server Error";
+				statusCounts["fivexx"]++;
+			}
+			log.info(
+				`ID >> ${site.id}, Result >> ${site.status} → ${response.status()}, Reason >> ${failedReason}: ${response.status()}`,
+				"BROWSER",
+			);
+			return;
+		}
+
+		// response === null
 		if (parseInt(site.status) >= 500) {
 			log.info(`ID >> ${site.id}, Result >> 不做修改`, "BROWSER");
-			statusCounts["fourxx"]++;
-		} else {
-			const pageContent = await page.content();
-
-			if (checkPageContent(pageContent, looseMode)) {
-				await WebModel.update(
-					{
-						status: "RUN",
-						failedReason: null,
-						lastManualCheck: null,
-					},
-					{ where: { id: site.id } },
-				);
-				log.info(
-					`ID >> ${site.id}, Result >> ${site.status} → RUN`,
-					"BROWSER",
-				);
-				statusCounts["run"]++;
-			} else {
-				await pushToLark(site);
-				await WebModel.update(
-					{
-						status: "LOST",
-						failedReason: null,
-						lastManualCheck: null,
-					},
-					{ where: { id: site.id } },
-				);
-				log.info(
-					`ID >> ${site.id}, Result >> ${site.status} → LOST`,
-					"BROWSER",
-				);
-				statusCounts["lost"]++;
-			}
+			statusCounts["fivexx"]++;
+			return;
 		}
+
+		// 进行内容检查
+		if (checkPageContent(await page.content(), looseMode)) {
+			await WebModel.update(
+				{
+					status: "RUN",
+					failedReason: null,
+					lastManualCheck: null,
+				},
+				{ where: { id: site.id } },
+			);
+			log.info(
+				`ID >> ${site.id}, Result >> ${site.status} → RUN`,
+				"BROWSER",
+			);
+			statusCounts["run"]++;
+			return;
+		}
+
+		// 未通过内容检查
+		await pushToLark(site);
+		await WebModel.update(
+			{
+				status: "LOST",
+				failedReason: null,
+				lastManualCheck: null,
+			},
+			{ where: { id: site.id } },
+		);
+		log.info(
+			`ID >> ${site.id}, Result >> ${site.status} → LOST`,
+			"BROWSER",
+		);
+		statusCounts["lost"]++;
+		return;
 	} catch (error) {
 		await pushToLark(site);
 		await WebModel.update(
