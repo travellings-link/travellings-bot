@@ -68,5 +68,5 @@ export const config = {
 		: 20,
 	BROWSER_CHECK_MAX_CONCURRENT: process.env["BROWSER_CHECK_MAX_CONCURRENT"]
 		? parseInt(process.env["BROWSER_CHECK_MAX_CONCURRENT"])
-		: 10,
+		: 1,
 };
