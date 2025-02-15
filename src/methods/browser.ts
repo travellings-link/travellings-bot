@@ -409,6 +409,9 @@ async function checkSite(
 			} else if (response.status().toString().startsWith("5")) {
 				failedReason = "Server Error";
 				statusCounts["fivexx"]++;
+			} else {
+				failedReason = response.status().toString();
+				statusCounts["errorCount"]++;
 			}
 			log.info(
 				`ID >> ${site.id}, Result >> ${site.status} → ${response.status()}, Reason >> ${failedReason}: ${response.status()}`,
