@@ -16,6 +16,14 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 		includeZH = pageContent.includes("开往");
 	}
 
+	// 适配特殊情况
+	const specialCases = [
+		"anzhiyu.totraveling()", // hexo-theme-anzhiyu
+	];
+	const includeSpecialCase = specialCases.some((caseItem) =>
+		pageContent.includes(caseItem),
+	);
+
 	// 可能的绕过方法 -> 站点挂个假链接但是无实际跳转作用/挂个不可见的链接
 	// 许可的开往跳转外链
 	const links = [
@@ -25,5 +33,5 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 		"https://www.travellings.cn/go-by-clouds.html",
 	];
 	const includeLink = links.some((link) => pageContent.includes(link));
-	return includeLink || includeEN || includeZH;
+	return includeLink || includeSpecialCase || includeEN || includeZH;
 }
