@@ -241,7 +241,7 @@ export default async function browserCheck(
 					{
 						type: "text",
 						bold: true,
-						content: "备注：仅巡查 LOST 和 ERROR 状态的站点",
+						content: "备注：仅巡查 LOST、ERROR 和 403 状态的站点",
 					},
 				],
 			]);
@@ -313,8 +313,8 @@ async function checkSingleURL(
 			page.waitForNavigation({ waitUntil: "networkidle0" }),
 		]);
 
-		if (response && response.status() !== 200) {
-			// 返回码不为 200
+		if (response && ![200, 304].includes(response.status())) {
+			// 返回码不为 200, 304
 			// response.ok() 为 true 是 200-299，但是可能有如 204 No Content，所以归入此类
 			log.info(
 				`URL >> \x1b[0m${siteURL}\x1b[34m, Result >> \x1b[31m${response.status()}\x1b[34m`,
@@ -391,8 +391,8 @@ async function checkSite(
 			page.waitForNavigation({ waitUntil: "networkidle0" }),
 		]);
 
-		if (response && response.status() !== 200) {
-			// 返回码不为 200
+		if (response && ![200, 304].includes(response.status())) {
+			// 返回码不为 200, 304
 			// response.ok() 为 true 是 200-299，但是可能有如 204 No Content，所以归入此类
 			await WebModel.update(
 				{
