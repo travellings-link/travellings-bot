@@ -19,6 +19,7 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 	// 适配特殊情况
 	const specialCases = [
 		"anzhiyu.totraveling()", // hexo-theme-anzhiyu
+		"totraveling()", // halo-theme-hao
 	];
 	const includeSpecialCase = specialCases.some((caseItem) =>
 		pageContent.includes(caseItem),
