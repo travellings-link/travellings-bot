@@ -9,6 +9,7 @@
 // 2024/01/16 04:42 CST
 // Migrated to ESM & Typescript on 2024/10/10 by Allenyou <i@allenyou.wang>
 import axios, { AxiosError } from "axios";
+import axiosRetry from "axios-retry";
 import { Op } from "sequelize";
 
 import { botManager } from "../bot/botManager";
@@ -17,6 +18,11 @@ import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
+
+// 配置 axios-retry 自动重试
+axiosRetry(axios, {
+	retries: 3,
+});
 
 const axiosConfig = {
 	headers: {
