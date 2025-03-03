@@ -80,7 +80,7 @@ axiosRetry(axios, {
 	retryCondition: (error) => {
 		return (
 			error.code !== undefined &&
-			["ECONNABORTED", "ECONNRESET", "RETRY"].includes(error.code) 
+			["ECONNABORTED", "ECONNRESET", "RETRY"].includes(error.code)
 			// 拦截 ECONNABORTED ECONNRESET 这两种，再加个 RETRY 支持
 		);
 	},

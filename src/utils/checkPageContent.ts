@@ -28,11 +28,18 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 	// 可能的绕过方法 -> 站点挂个假链接但是无实际跳转作用/挂个不可见的链接
 	// 许可的开往跳转外链
 	const links = [
-		"https://www.travellings.cn/go.html",
-		"https://www.travellings.cn/plain.html",
-		"https://www.travellings.cn/coder-1024.html",
-		"https://www.travellings.cn/go-by-clouds.html",
+		"www.travellings.cn/go.html",
+		"www.travellings.cn/plain.html",
+		"www.travellings.cn/coder-1024.html",
+		"www.travellings.cn/go-by-clouds.html",
+		"travellings.cn/go.html",
+		"travellings.cn/plain.html",
+		"travellings.cn/coder-1024.html",
+		"travellings.cn/go-by-clouds.html",
+		"travellings.link",
 	];
-	const includeLink = links.some((link) => pageContent.includes(link));
+	const includeLink = links.some((link) =>
+		pageContent.includes(`https://${link}`),
+	);
 	return includeLink || includeSpecialCase || includeEN || includeZH;
 }
