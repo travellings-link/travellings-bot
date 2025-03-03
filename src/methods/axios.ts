@@ -22,6 +22,21 @@ import { checkPageContent } from "../utils/checkPageContent";
 // 配置 axios-retry 自动重试
 axiosRetry(axios, {
 	retries: 3,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	onRetry: (retryCount, error, _requestConfig) => {
+		new Logger("_Axios").warn(
+			`\x1b[0m${error.config?.url}\x1b[34m 开始第 ${retryCount} 次重试`,
+			"AXIOS",
+		);
+		return;
+	},
+	retryCondition: (error) => {
+		return (
+			error.code !== undefined &&
+			["ECONNABORTED", "ECONNRESET"].includes(error.code)
+		);
+	},
+	shouldResetTimeout: true,
 });
 
 const axiosConfig = {
