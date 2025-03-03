@@ -155,7 +155,7 @@ export default async function browserCheck(
 			const sitesToCheck = await WebModel.findAll({
 				where: {
 					status: {
-						[Op.in]: ["LOST", "ERROR", "403"],
+						[Op.in]: ["LOST", "ERROR", "403", "WAIT"],
 					},
 					lastManualCheck: {
 						[Op.or]: [

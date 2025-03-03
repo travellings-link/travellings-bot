@@ -13,7 +13,9 @@ import {
 	Model,
 } from "sequelize";
 
+import { botManager } from "../bot/botManager";
 import sql from "./sqlConfig";
+import { Logger, time } from "./typedLogger";
 
 class WebModel extends Model<
 	InferAttributes<WebModel>,
@@ -64,6 +66,53 @@ WebModel.init(
 		tableName: "webs",
 		sequelize: sql,
 		timestamps: false,
+		hooks: {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			beforeUpdate: async (webModel, _options) => {
+				const sql_logger = new Logger("_SQL");
+				if (webModel.previous("status") === "WAIT") {
+					if (webModel.status !== "RUN") {
+						// 阻止从 WAIT 修改到非 RUN
+						sql_logger.info(
+							`ID >> ${webModel.id}, SQL >> WAIT x→ ${webModel.status}`,
+							"SQL",
+						);
+						// 手动将 status 设置回 WAIT
+						webModel.status = "WAIT";
+					} else {
+						sql_logger.info(
+							`ID >> ${webModel.id}, SQL >> WAIT → RUN`,
+							"SQL",
+						);
+						if (process.env["PUBLIC_MODE"] !== "true") {
+							botManager.boardcastRichTextMessage([
+								[
+									{
+										type: "text",
+										bold: true,
+										content: "开往巡查姬提醒您：",
+									},
+								],
+								[{ type: "text", content: "" }],
+								[
+									{
+										type: "text",
+										content: `"ID 为 ${webModel.id}" 的站点从 WAIT 恢复到 RUN 状态，请及时处理对应 issue`,
+									},
+								],
+								[{ type: "text", content: "" }],
+								[
+									{
+										type: "text",
+										content: `发送时间：${time()} CST`,
+									},
+								],
+							]);
+						}
+					}
+				}
+			},
+		},
 	},
 );
 
