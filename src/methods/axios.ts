@@ -19,6 +19,7 @@ import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
+import { WaitToRunMessageQueue } from "../utils/messageQueue";
 
 /**
  * 判断 HTTP 状态码是否需要重试。
@@ -230,6 +231,9 @@ export default async function normalCheck(
 			[{ type: "text", content: `发送时间：${time()} CST` }],
 			[{ type: "text", bold: true, content: "备注：巡查所有站点" }],
 		]);
+
+		// 清空队列消息
+		WaitToRunMessageQueue.getInstance().clearAndNotify();
 	}
 
 	// 发送日志
@@ -358,33 +362,19 @@ async function checkSite(
 	const checkResult = await checkSingleURL(web.link, axios_logger, looseMode);
 
 	if (checkResult.status == "RUN") {
-		web.status = "RUN";
-		web.failedReason = null;
 		statusCounts["run"]++;
 	} else if (checkResult.status == "LOST") {
-		web.status = "LOST";
-		web.failedReason = null;
 		statusCounts["lost"]++;
 	} else if (checkResult.status.startsWith("4")) {
-		web.status = checkResult.status;
-		web.failedReason = checkResult.failedReason;
 		statusCounts["fourxx"]++;
 	} else if (checkResult.status.startsWith("5")) {
-		web.status = checkResult.status;
-		web.failedReason = checkResult.failedReason;
 		statusCounts["fivexx"]++;
 	} else if (checkResult.status == "TIMEOUT") {
-		web.status = "TIMEOUT";
-		web.failedReason = `Axios Error：连接超时（预设时间：${config.LOAD_TIMEOUT} 秒）`;
 		statusCounts["timeout"]++;
 	} else {
 		// checkResult.status === "ERROR" or 其他特殊 HTTP CODE
-		web.status = checkResult.status;
-		web.failedReason = checkResult.failedReason;
 		statusCounts["errorCount"]++;
 	}
-
-	web.lastManualCheck = null;
 
 	if (checkResult.status === "RUN") {
 		axios_logger.info(
@@ -399,5 +389,9 @@ async function checkSite(
 	}
 
 	// 提交数据库修改
-	await web.save();
+	await web.update({
+		status: checkResult.status,
+		failedReason: checkResult.failedReason,
+		lastManualCheck: null,
+	});
 }

@@ -1,3 +1,7 @@
+import { botManager } from "../bot/botManager";
+import { RichTextMessage } from "../bot/utils/richTextMessage";
+import { time } from "../modules/typedLogger";
+
 /*
  * 存储从 WAIT 状态变成 RUN 状态的站点 id
  */
@@ -63,5 +67,51 @@ export class WaitToRunMessageQueue {
 	 */
 	public getAllIds(): number[] {
 		return [...this.ids];
+	}
+
+	/**
+	 * 清空队列并发送消息到 bot
+	 *
+	 * @returns {void}
+	 */
+	public clearAndNotify(): void {
+		if (this.isEmpty()) {
+			return;
+		}
+
+		const message: RichTextMessage = [
+			[
+				{
+					type: "text",
+					bold: true,
+					content: "开往巡查姬提醒您：",
+				},
+			],
+		];
+		message.push([
+			{
+				type: "text",
+				content:
+					"以下的站点从 WAIT 恢复到 RUN 状态，请及时处理对应 issue",
+			},
+		]);
+		while (!this.isEmpty()) {
+			message.push([
+				{
+					type: "text",
+					content: `${this.dequeue()}`,
+				},
+			]);
+		}
+		message.push(
+			[{ type: "text", content: "" }],
+			[
+				{
+					type: "text",
+					content: `发送时间：${time()} CST`,
+				},
+			],
+		);
+		botManager.boardcastRichTextMessage(message);
 	}
 }
