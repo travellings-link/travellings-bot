@@ -124,7 +124,7 @@ export default async function browserCheck(
 	try {
 		if (inputURL) {
 			// 如果传入 URL 参数，则只检查指定 URL 的网站
-			cliModeResult = await checkSingleURL(
+			cliModeResult = await checkSingleURLWithRetry(
 				page,
 				inputURL,
 				browser_logger,
@@ -299,6 +299,51 @@ async function pushToLark(site: WebModel) {
 }
 
 /**
+ * 检查单个 URL 的网站状态，并添加重试机制。
+ *
+ * @param page - Puppeteer 页面实例。
+ * @param siteURL - 要检查的网站 URL。
+ * @param log - 日志记录器实例。
+ * @param looseMode - 可选参数，在检查时使用宽松模式。
+ * @param maxRetries - 最大尝试次数，默认为 3。
+ * @param retryDelay - 重试等待时间，单位为毫秒，默认为 1000 毫秒。
+ *
+ * @returns {Promise<{ siteURL: string; status: string }>}
+ * 返回一个包含 siteURL 和 status 的对象，status 的可能值包括 'RUN'、'LOST'、'ERROR'、以及 HTTP 状态码
+ */
+async function checkSingleURLWithRetry(
+	page: Page,
+	siteURL: string,
+	log: Logger,
+	looseMode?: boolean,
+	maxRetries: number = 3,
+	retryDelay: number = 1000,
+): Promise<{ siteURL: string; status: string }> {
+	let attempt = 0;
+	let result: { siteURL: string; status: string };
+
+	while (attempt < maxRetries) {
+		result = await checkSingleURL(page, siteURL, log, looseMode);
+
+		// 如果返回值是 RUN 或者 LOST 就不重试
+		if (result.status === "RUN" || result.status === "LOST") {
+			return result;
+		}
+
+		attempt++;
+		if (attempt < maxRetries) {
+			log.warn(
+				chalkTemplate`URL >> {white ${siteURL}}, 等待 ${retryDelay} 毫秒后重试第 ${attempt} 次`,
+				"BROWSER",
+			);
+			await new Promise((resolve) => setTimeout(resolve, retryDelay));
+		}
+	}
+
+	return result!;
+}
+
+/**
  * 检查单个 URL 的网站状态。
  *
  * @param page - Puppeteer 页面实例。
@@ -400,7 +445,7 @@ async function checkSite(
 ) {
 	try {
 		const siteStatusResult = (
-			await checkSingleURL(page, site.link, log, looseMode)
+			await checkSingleURLWithRetry(page, site.link, log, looseMode)
 		).status;
 		// 处理 siteStatusResult 要以下四个步骤
 		// 1. 是否 pushToLark
