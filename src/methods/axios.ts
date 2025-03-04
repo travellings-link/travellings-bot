@@ -69,7 +69,7 @@ axios.interceptors.response.use(
 
 // 配置 axios-retry 自动重试，处理 axios.interceptors.response.use 在 onRejected 的情况
 axiosRetry(axios, {
-	retries: 3,
+	retries: 2, // 这里设置为 2，是第一次失败后再来 retries 次，所以一共是试 3 次
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	onRetry: (retryCount, error, _requestConfig) => {
 		new Logger("_Axios").warn(
