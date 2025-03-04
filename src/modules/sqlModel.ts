@@ -13,7 +13,9 @@ import {
 	Model,
 } from "sequelize";
 
+import { WaitToRunMessageQueue } from "../utils/messageQueue";
 import sql from "./sqlConfig";
+import { Logger } from "./typedLogger";
 
 class WebModel extends Model<
 	InferAttributes<WebModel>,
@@ -64,6 +66,33 @@ WebModel.init(
 		tableName: "webs",
 		sequelize: sql,
 		timestamps: false,
+		hooks: {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			beforeUpdate: async (webModel, _options) => {
+				const sql_logger = new Logger("_SQL");
+				if (webModel.previous("status") === "WAIT") {
+					if (webModel.status !== "RUN") {
+						// 阻止从 WAIT 修改到非 RUN
+						sql_logger.info(
+							`ID >> ${webModel.id}, SQL >> WAIT x→ ${webModel.status}`,
+							"SQL",
+						);
+						// 手动将 status 设置回 WAIT
+						webModel.status = "WAIT";
+					} else {
+						sql_logger.info(
+							`ID >> ${webModel.id}, SQL >> WAIT → RUN`,
+							"SQL",
+						);
+						if (process.env["PUBLIC_MODE"] !== "true") {
+							WaitToRunMessageQueue.getInstance().enqueue(
+								webModel.id,
+							);
+						}
+					}
+				}
+			},
+		},
 	},
 );
 

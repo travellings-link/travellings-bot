@@ -163,9 +163,6 @@ export default async function normalCheck(
 		// 如果未传入参数，则检查所有网站
 		webs = await WebModel.findAll({
 			where: {
-				status: {
-					[Op.notIn]: ["WAIT"],
-				},
 				lastManualCheck: {
 					[Op.or]: [
 						{ [Op.eq]: null },
