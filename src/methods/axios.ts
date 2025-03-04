@@ -9,7 +9,7 @@
 // 2024/01/16 04:42 CST
 // Migrated to ESM & Typescript on 2024/10/10 by Allenyou <i@allenyou.wang>
 import axios, { AxiosError } from "axios";
-import axiosRetry from "axios-retry";
+import axiosRetry, { exponentialDelay } from "axios-retry";
 import { Op } from "sequelize";
 
 import { botManager } from "../bot/botManager";
@@ -19,7 +19,54 @@ import { Logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
 
-// 配置 axios-retry 自动重试
+/**
+ * 判断 HTTP 状态码是否需要重试。
+ *
+ * @param statusCode - HTTP 状态码，可以是数字或字符串。
+ * @returns {boolean} - 如果需要重试则返回 true，否则返回 false。
+ */
+function shouldRetry(statusCode: number | string): boolean {
+	const code =
+		typeof statusCode === "string" ? parseInt(statusCode, 10) : statusCode;
+	return code === 429 || (code >= 500 && code <= 599); // 需要重试的范围 429、500-599
+}
+
+// 处理 axios.interceptors.response.use 在 onFulfilled 的情况
+axios.interceptors.response.use(
+	(response) => {
+		// 处理响应数据
+		const { config, request } = response;
+		// 已经到达重试次数，直接跳过后面的检查
+		// 否则后面的日志处理会由于 return Promise.reject 按照 ERROR 处理，而不是 RESPONSE
+		// 举例：
+		// 日志按照 ERROR 处理：Result >> ERROR, Reason >> Axios Error：521
+		// 日志按照 RESPONSE 处理：Result >> 521, Reason >> Server Error：521, Title：undefined
+		if (
+			config["axios-retry"]?.retries === config["axios-retry"]?.retryCount
+		) {
+			return response;
+		}
+
+		// 通过 HTTP 状态码判断是否需要重试
+		if (shouldRetry(response.status)) {
+			return Promise.reject(
+				new AxiosError(
+					response.status.toString(),
+					"RETRY",
+					config,
+					request,
+					response,
+				),
+			); // 这里 reject 之后会移交给 axiosRetry 处理
+		}
+
+		// 不在重试范围，不做处理
+		return response;
+	},
+	null, // axiosRetry 会处理 onRejected，这里直接 null 即可
+);
+
+// 配置 axios-retry 自动重试，处理 axios.interceptors.response.use 在 onRejected 的情况
 axiosRetry(axios, {
 	retries: 3,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,9 +80,11 @@ axiosRetry(axios, {
 	retryCondition: (error) => {
 		return (
 			error.code !== undefined &&
-			["ECONNABORTED", "ECONNRESET"].includes(error.code)
+			["ECONNABORTED", "ECONNRESET", "RETRY"].includes(error.code)
+			// 拦截 ECONNABORTED ECONNRESET 这两种，再加个 RETRY 支持
 		);
 	},
+	retryDelay: exponentialDelay,
 	shouldResetTimeout: true,
 });
 
