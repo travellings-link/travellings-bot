@@ -10,6 +10,7 @@
 // Migrated to ESM & Typescript on 2024/10/10 by Allenyou <i@allenyou.wang>
 import axios, { AxiosError } from "axios";
 import axiosRetry, { exponentialDelay } from "axios-retry";
+import chalkTemplate from "chalk-template";
 import { Op } from "sequelize";
 
 import { botManager } from "../bot/botManager";
@@ -72,7 +73,7 @@ axiosRetry(axios, {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	onRetry: (retryCount, error, _requestConfig) => {
 		new Logger("_Axios").warn(
-			`\x1b[0m${error.config?.url}\x1b[34m 开始第 ${retryCount} 次重试`,
+			chalkTemplate`{white ${error.config?.url}} 开始第 ${retryCount} 次重试`,
 			"AXIOS",
 		);
 		return;
@@ -167,6 +168,7 @@ export default async function normalCheck(
 					[Op.or]: [
 						{ [Op.eq]: null },
 						{
+							// 筛选出 lastManualCheck 字段的值在 30 天之前的记录
 							[Op.lt]: new Date(
 								new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
 							),
@@ -177,6 +179,7 @@ export default async function normalCheck(
 		});
 	}
 
+	// 统计站点状态，用于日志输出
 	const statusCounts = {
 		total: 0,
 		run: 0,
@@ -196,8 +199,10 @@ export default async function normalCheck(
 
 	const endTime = new Date();
 	const input = (endTime.getTime() - startTime.getTime()) / 1000;
-	// 清除 Redis 缓存
+
+	// 无 Token 模式跳过此部分
 	if (process.env["PUBLIC_MODE"] !== "true") {
+		// 清除 Redis 缓存
 		try {
 			await axios.get(`${config.API_URL}/all`);
 			await axios.delete(`${config.API_URL}/action/purgeCache`, {
@@ -206,35 +211,32 @@ export default async function normalCheck(
 		} catch (e) {
 			axios_logger.err((e as Error).message, "REDIS");
 		}
+
+		// 发送 bot 消息
+		botManager.boardcastRichTextMessage([
+			[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
+			[{ type: "text", content: "" }],
+			[{ type: "text", content: "本次巡查方式：Axios" }],
+			[{ type: "text", content: `持续了 ${spentTime(input)}` }],
+			[{ type: "text", content: "" }],
+			[{ type: "text", bold: true, content: "巡查报告" }],
+			[
+				{
+					type: "text",
+					content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
+				},
+			],
+			[{ type: "text", content: "" }],
+			[{ type: "text", content: `发送时间：${time()} CST` }],
+			[{ type: "text", bold: true, content: "备注：巡查所有站点" }],
+		]);
 	}
 
+	// 发送日志
 	const stats = `检测耗时：${spentTime(
 		input,
 	)}｜总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`;
 	axios_logger.info(` 检测完成 >> ${stats}`, "AXIOS");
-	axios_logger.close();
-	botManager.boardcastRichTextMessage([
-		[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
-		[{ type: "text", content: "" }],
-		[{ type: "text", content: "本次巡查方式：Axios" }],
-		[{ type: "text", content: `持续了 ${spentTime(input)}` }],
-		[{ type: "text", content: "" }],
-		[{ type: "text", bold: true, content: "巡查报告" }],
-		[
-			{
-				type: "text",
-				content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
-			},
-		],
-		[{ type: "text", content: "" }],
-		[{ type: "text", content: `发送时间：${time()} CST` }],
-		[{ type: "text", bold: true, content: "备注：巡查所有站点" }],
-	]);
-	// botManager.boardcastMessage(
-	// 	`<strong>开往巡查姬提醒您：</strong>\n\n本次巡查方式：Axios\n持续了 ${spentTime(
-	// 		input
-	// 	)}\n\n<strong>巡查报告</strong>\n总共: ${total} 个｜RUN: ${run} 个｜LOST: ${lost} 个｜4XX: ${fourxx} 个｜5XX: ${fivexx} 个｜ERROR: ${errorCount} 个｜TIMEOUT: ${timeout} 个\n\n发送时间：${time()} CST\n备注：巡查所有站点`
-	// );
 }
 
 /**
@@ -268,21 +270,24 @@ async function checkSingleURL(
 
 		const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
 
-		if (
-			response.status === 200 &&
-			checkPageContent(response.data, looseMode)
-		) {
-			result.status = "RUN";
-			result.failedReason = null;
-		} else if (response.status.toString().startsWith("4")) {
+		if (response.status.toString().startsWith("4")) {
 			result.status = response.status.toString();
 			result.failedReason = `Client Error：${response.status}, Title：${title}`;
 		} else if (response.status.toString().startsWith("5")) {
 			result.status = response.status.toString();
 			result.failedReason = `Server Error：${response.status}, Title：${title}`;
+		} else if ([200, 304].includes(response.status)) {
+			if (checkPageContent(response.data, looseMode)) {
+				result.status = "RUN";
+				result.failedReason = null;
+			} else {
+				result.status = "LOST";
+				result.failedReason = null;
+			}
 		} else {
-			result.status = "LOST";
-			result.failedReason = null;
+			// 兜底特殊 HTTP CODE
+			result.status = "ERROR";
+			result.failedReason = response.status.toString();
 		}
 	} catch (error) {
 		if (error instanceof AxiosError) {
@@ -302,16 +307,20 @@ async function checkSingleURL(
 				result.status = "ERROR";
 				result.failedReason = `Axios Error：${error.message}`;
 			}
+		} else {
+			result.status = "ERROR";
+			result.failedReason =
+				error instanceof Error ? error.message : String(error);
 		}
 	} finally {
 		if (result.status === "RUN") {
 			axios_logger.info(
-				`URL >> \x1b[0m${result.link}\x1b[34m, Result >> \x1b[32m${result.status}\x1b[34m, Reason >> ${result.failedReason}`,
+				chalkTemplate`URL >> {white ${result.link}}, Result >> {green RUN}`,
 				"AXIOS",
 			);
 		} else {
 			axios_logger.info(
-				`URL >> \x1b[0m${result.link}\x1b[34m, Result >> \x1b[31m${result.status}\x1b[34m, Reason >> ${result.failedReason}`,
+				chalkTemplate`URL >> {white ${result.link}}, Result >> {red ${result.status}}, Reason >> ${result.failedReason}`,
 				"AXIOS",
 			);
 		}
@@ -346,73 +355,49 @@ async function checkSite(
 	},
 	looseMode?: boolean,
 ) {
-	try {
-		const response = await axios.get(web.link, axiosConfig);
-		let data = response.data;
+	const checkResult = await checkSingleURL(web.link, axios_logger, looseMode);
 
-		if (Buffer.isBuffer(data)) {
-			data = data.toString(); // 将 Buffer 转换为字符串
-		} else if (typeof data !== "string") {
-			data = JSON.stringify(data); // 将非字符串类型转换为 JSON 字符串
-		}
+	if (checkResult.status == "RUN") {
+		web.status = "RUN";
+		web.failedReason = null;
+		statusCounts["run"]++;
+	} else if (checkResult.status == "LOST") {
+		web.status = "LOST";
+		web.failedReason = null;
+		statusCounts["lost"]++;
+	} else if (checkResult.status.startsWith("4")) {
+		web.status = checkResult.status;
+		web.failedReason = checkResult.failedReason;
+		statusCounts["fourxx"]++;
+	} else if (checkResult.status.startsWith("5")) {
+		web.status = checkResult.status;
+		web.failedReason = checkResult.failedReason;
+		statusCounts["fivexx"]++;
+	} else if (checkResult.status == "TIMEOUT") {
+		web.status = "TIMEOUT";
+		web.failedReason = `Axios Error：连接超时（预设时间：${config.LOAD_TIMEOUT} 秒）`;
+		statusCounts["timeout"]++;
+	} else {
+		// checkResult.status === "ERROR" or 其他特殊 HTTP CODE
+		web.status = checkResult.status;
+		web.failedReason = checkResult.failedReason;
+		statusCounts["errorCount"]++;
+	}
 
-		const title = (data.match(/<title>(.*?)<\/title>/i) || [])[1];
+	web.lastManualCheck = null;
 
-		if (
-			response.status === 200 &&
-			checkPageContent(response.data, looseMode)
-		) {
-			web.status = "RUN";
-			web.failedReason = null;
-			statusCounts["run"]++;
-		} else if (response.status.toString().startsWith("4")) {
-			web.status = response.status.toString();
-			web.failedReason = `Client Error：${response.status}, Title：${title}`;
-			statusCounts["fourxx"]++;
-		} else if (response.status.toString().startsWith("5")) {
-			web.status = response.status.toString();
-			web.failedReason = `Server Error：${response.status}, Title：${title}`;
-			statusCounts["fivexx"]++;
-		} else {
-			web.status = "LOST";
-			web.failedReason = null;
-			statusCounts["lost"]++;
-		}
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			if (error.code === "ECONNABORTED") {
-				web.status = "TIMEOUT";
-				web.failedReason = `Axios Error：连接超时（预设时间：${config.LOAD_TIMEOUT} 秒）`;
-				statusCounts["timeout"]++;
-			} else if (error.code === "ENOTFOUND") {
-				web.status = "ERROR";
-				web.failedReason = `Axios Error：DNS 解析失败（域名不存在）`;
-				statusCounts["errorCount"]++;
-			} else if (error.code === "ECONNREFUSED") {
-				web.status = "ERROR";
-				web.failedReason = `Axios Error：连接被拒绝（ECONNREFUSED）`;
-				statusCounts["errorCount"]++;
-			} else if (error.code === "ECONNRESET") {
-				web.status = "ERROR";
-				web.failedReason = `Axios Error：连接被重置（ECONNRESET）`;
-				statusCounts["errorCount"]++;
-			} else {
-				web.status = "ERROR";
-				web.failedReason = `Axios Error：${error.message}`;
-				statusCounts["errorCount"]++;
-			}
-		} else {
-			web.status = "ERROR";
-			web.failedReason =
-				error instanceof Error ? error.message : String(error);
-			statusCounts["errorCount"]++;
-		}
-	} finally {
-		web.lastManualCheck = null;
+	if (checkResult.status === "RUN") {
 		axios_logger.info(
-			`ID >> ${web.id}, Result >> ${web.status}, Reason >> ${web.failedReason}`,
+			chalkTemplate`ID >> {white ${web.id}}, Result >> {green ${web.status}}`,
 			"AXIOS",
 		);
-		await web.save();
+	} else {
+		axios_logger.info(
+			chalkTemplate`ID >> {white ${web.id}}, Result >> {red ${web.status}}, Reason >> ${web.failedReason}`,
+			"AXIOS",
+		);
 	}
+
+	// 提交数据库修改
+	await web.save();
 }
