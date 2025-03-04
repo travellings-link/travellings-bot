@@ -13,9 +13,9 @@ import {
 	Model,
 } from "sequelize";
 
-import { botManager } from "../bot/botManager";
+import { WaitToRunMessageQueue } from "../utils/messageQueue";
 import sql from "./sqlConfig";
-import { Logger, time } from "./typedLogger";
+import { Logger } from "./typedLogger";
 
 class WebModel extends Model<
 	InferAttributes<WebModel>,
@@ -85,29 +85,9 @@ WebModel.init(
 							"SQL",
 						);
 						if (process.env["PUBLIC_MODE"] !== "true") {
-							botManager.boardcastRichTextMessage([
-								[
-									{
-										type: "text",
-										bold: true,
-										content: "开往巡查姬提醒您：",
-									},
-								],
-								[{ type: "text", content: "" }],
-								[
-									{
-										type: "text",
-										content: `"ID 为 ${webModel.id}" 的站点从 WAIT 恢复到 RUN 状态，请及时处理对应 issue`,
-									},
-								],
-								[{ type: "text", content: "" }],
-								[
-									{
-										type: "text",
-										content: `发送时间：${time()} CST`,
-									},
-								],
-							]);
+							WaitToRunMessageQueue.getInstance().enqueue(
+								webModel.id,
+							);
 						}
 					}
 				}
