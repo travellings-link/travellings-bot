@@ -21,6 +21,7 @@ import { WebModel } from "../modules/sqlModel";
 import { Logger, logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
+import { WaitToRunMessageQueue } from "../utils/messageQueue";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
@@ -260,6 +261,9 @@ export default async function browserCheck(
 						},
 					],
 				]);
+
+				// 清空队列消息
+				WaitToRunMessageQueue.getInstance().clearAndNotify();
 			}
 		}
 	}
