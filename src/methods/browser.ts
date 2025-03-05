@@ -177,19 +177,6 @@ export default async function browserCheck(
 				},
 			});
 
-			// 在飞书表格中把之前的数据标为过期
-			if (config.LARK_DELETE_TOKEN !== undefined) {
-				await axios.post(
-					"https://travellings.feishu.cn/base/automation/webhook/event/IMGSaw0NYwvpgvh62p6cSxeVnXM",
-					{},
-					{
-						headers: {
-							Authorization: `Bearer ${config.LARK_DELETE_TOKEN}`,
-						},
-					},
-				);
-			}
-
 			// 使用 asyncPool 限制同时查询数
 			const maxConcurrent = config.BROWSER_CHECK_MAX_CONCURRENT;
 			await asyncPool(maxConcurrent, sitesToCheck, async (site) => {
@@ -271,35 +258,6 @@ export default async function browserCheck(
 	// lint 要求，return 不能放 finally 里
 	// cli 模式的在前面的 return 了，所以这里无需判断
 	return;
-}
-
-/**
- * 将站点信息推送到 Lark。
- *
- * @param site - 要推送的站点信息。
- *
- * @returns {Promise<void>} - 异步函数，无返回值。
- */
-async function pushToLark(site: WebModel) {
-	if (
-		process.env["PUBLIC_MODE"] === "true" ||
-		config.LARK_ADD_TOKEN === undefined
-	) {
-		// 无 Token 模式运行，不 push || 未设置 Token，不 push
-		return;
-	}
-	axios.post(
-		"https://travellings.feishu.cn/base/automation/webhook/event/XqqeajshBwBIRlh4GyAcu1d1ned",
-		{
-			site_id: site.id,
-			link: site.link,
-		},
-		{
-			headers: {
-				Authorization: `Bearer ${config.LARK_ADD_TOKEN}`,
-			},
-		},
-	);
 }
 
 /**
@@ -418,11 +376,10 @@ async function checkSingleURL(
 
 /**
  * 检查指定站点的状态
- * 之后根据结果执行以下四个步骤
- * 1. 是否 pushToLark
- * 2. 更新数据库
- * 3. statusCounts 对应项统计值 +1
- * 4. console 日志输出
+ * 之后根据结果执行以下步骤
+ * 1. 更新数据库
+ * 2. statusCounts 对应项统计值 +1
+ * 3. console 日志输出
  *
  * @param page - Puppeteer 页面实例。
  * @param site - 要检查的站点信息。
@@ -451,18 +408,11 @@ async function checkSite(
 		const siteStatusResult = (
 			await checkSingleURLWithRetry(page, site.link, log, looseMode)
 		).status;
-		// 处理 siteStatusResult 要以下四个步骤
-		// 1. 是否 pushToLark
-		// 2. 更新数据库
-		// 3. statusCounts 对应项统计值 +1
-		// 4. console 日志输出
-
 		// lint 要求，声明不能放 case 语句里面
 		let failedReason: string = "";
 
 		switch (siteStatusResult) {
 			case "RUN":
-				// RUN 状态站点 无需 pushToLark
 				await site.update({
 					status: "RUN",
 					failedReason: null,
@@ -477,7 +427,6 @@ async function checkSite(
 				);
 				return;
 			case "LOST":
-				await pushToLark(site);
 				await site.update({
 					status: "LOST",
 					failedReason: null,
@@ -492,8 +441,6 @@ async function checkSite(
 				);
 				return;
 			default:
-				await pushToLark(site);
-
 				await site.update({
 					status: siteStatusResult,
 					failedReason: null,
@@ -518,8 +465,6 @@ async function checkSite(
 				return;
 		}
 	} catch (error) {
-		await pushToLark(site);
-
 		await site.update({ lastManualCheck: null });
 
 		statusCounts["errorCount"]++;

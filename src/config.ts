@@ -41,10 +41,6 @@ export const config = {
 		? process.env["LARK_CHATID"].split(",")
 		: ["oc_bcc115f23153490d907d7f6793e6fdc0"],
 
-	// Lark Table
-	LARK_DELETE_TOKEN: process.env["LARK_DELETE_TOKEN"],
-	LARK_ADD_TOKEN: process.env["LARK_ADD_TOKEN"],
-
 	// Redis
 	REDIS_HOST: process.env["REDIS_HOST"] || "127.0.0.1",
 	REDIS_PORT: process.env["REDIS_PORT"]
