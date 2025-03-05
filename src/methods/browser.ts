@@ -396,12 +396,6 @@ async function checkSite(
 
 		switch (siteStatusResult) {
 			case "RUN":
-				await site.update({
-					status: "RUN",
-					failedReason: null,
-					lastManualCheck: null,
-				});
-
 				statusCounts["run"]++;
 
 				log.info(
@@ -418,12 +412,6 @@ async function checkSite(
 
 				return;
 			case "LOST":
-				await site.update({
-					status: "LOST",
-					failedReason: null,
-					lastManualCheck: null,
-				});
-
 				statusCounts["lost"]++;
 
 				log.info(
@@ -439,12 +427,6 @@ async function checkSite(
 
 				return;
 			default:
-				await site.update({
-					status: siteStatusResult,
-					failedReason: null,
-					lastManualCheck: null,
-				});
-
 				if (siteStatusResult.startsWith("4")) {
 					failedReason = "Client Error";
 					statusCounts["fourxx"]++;
@@ -470,8 +452,6 @@ async function checkSite(
 				return;
 		}
 	} catch (error) {
-		await site.update({ lastManualCheck: null });
-
 		statusCounts["errorCount"]++;
 
 		log.info(
