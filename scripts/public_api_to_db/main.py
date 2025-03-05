@@ -85,7 +85,7 @@ def main() -> None:
         cursor.execute(
             f"""
             INSERT INTO webs (id, status, name, link, tag, failedReason, lastManualCheck) 
-            VALUES ({item["id"]}, "{item["status"]}", "{item["name"]}", "{item["url"]}", "{item["tag"]}", NULL, NULL)
+            VALUES ({item["id"]}, "{item["status"]}", "{item["name"]}", "{item["url"]}", "{item["tag"]}", "{item["failedReason"]}", "{item["lastManualCheck"]}")
         """
         )
 

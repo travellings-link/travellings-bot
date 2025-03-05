@@ -24,6 +24,17 @@ import { clearTravellingsAPICache } from "../utils/clearTravellingsAPICache";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
 import { durationTime, time } from "../utils/time";
 
+// 用于统计状态数
+interface StatusCounts {
+	total: number;
+	run: number;
+	lost: number;
+	errorCount: number;
+	timeout: number;
+	fourxx: number;
+	fivexx: number;
+}
+
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
 if (!fs.existsSync(tmpPath)) {
@@ -61,7 +72,7 @@ export default async function browserCheck(
 	status: string;
 }> {
 	// 用来统计状态的字典
-	const statusCounts = {
+	const statusCounts: StatusCounts = {
 		total: 0,
 		run: 0,
 		lost: 0,
@@ -156,18 +167,6 @@ export default async function browserCheck(
 				where: {
 					status: {
 						[Op.in]: ["LOST", "ERROR", "403", "WAIT"],
-					},
-					lastManualCheck: {
-						[Op.or]: [
-							{ [Op.eq]: null },
-							{
-								// 筛选出 lastManualCheck 字段的值在 30 天之前的记录
-								[Op.lt]: new Date(
-									new Date().getTime() -
-										30 * 24 * 60 * 60 * 1000,
-								),
-							},
-						],
 					},
 				},
 			});
@@ -385,15 +384,7 @@ async function checkSite(
 	page: Page,
 	site: WebModel,
 	log: Logger,
-	statusCounts: {
-		total: number;
-		run: number;
-		lost: number;
-		errorCount: number;
-		timeout: number;
-		fourxx: number;
-		fivexx: number;
-	},
+	statusCounts: StatusCounts,
 	looseMode?: boolean,
 ) {
 	try {
@@ -401,7 +392,7 @@ async function checkSite(
 			await checkSingleURLWithRetry(page, site.link, log, looseMode)
 		).status;
 		// lint 要求，声明不能放 case 语句里面
-		let failedReason: string = "";
+		let failedReason: string | null = null;
 
 		switch (siteStatusResult) {
 			case "RUN":
@@ -417,6 +408,14 @@ async function checkSite(
 					chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {green RUN}`,
 					"BROWSER",
 				);
+
+				// RUN 需更新数据库“最近 RUN 的时间"这项
+				await site.update({
+					status: "RUN",
+					failedReason: failedReason,
+					lastManualCheck: new Date(),
+				});
+
 				return;
 			case "LOST":
 				await site.update({
@@ -431,6 +430,13 @@ async function checkSite(
 					chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {red LOST}`,
 					"BROWSER",
 				);
+
+				// 非 RUN 无需更新数据库“最近 RUN 的时间"这项
+				await site.update({
+					status: "LOST",
+					failedReason: failedReason,
+				});
+
 				return;
 			default:
 				await site.update({
@@ -454,6 +460,13 @@ async function checkSite(
 					chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {red ${siteStatusResult}}, Reason >> ${failedReason}: ${siteStatusResult}`,
 					"BROWSER",
 				);
+
+				// 非 RUN 无需更新数据库“最近 RUN 的时间"这项
+				await site.update({
+					status: siteStatusResult,
+					failedReason: failedReason,
+				});
+
 				return;
 		}
 	} catch (error) {
@@ -465,5 +478,7 @@ async function checkSite(
 			chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {yellow 不做修改}, Reason >> ${(error as Error).message}`,
 			"BROWSER",
 		);
+
+		// error 无需更新数据库
 	}
 }

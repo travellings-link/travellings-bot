@@ -23,6 +23,7 @@ import { screenshot } from "./bot/commands/screenshot";
 import { version } from "./bot/commands/version";
 import { requireAdmin } from "./bot/middlewares/requireAdmin";
 import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
+import { RichTextMessage } from "./bot/utils/richTextMessage";
 import { config } from "./config";
 import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
@@ -37,8 +38,8 @@ export const global = {
 	version: "8.0.0",
 };
 
-async function checkAll() {
-	logger.info("✓ 开始巡查站点", "APP");
+export async function checkAll() {
+	logger.info("✓ 开始巡查全部站点", "APP");
 
 	// 备份巡查前的数据库
 	const webModels = await WebModel.findAll();
@@ -51,32 +52,13 @@ async function checkAll() {
 			status: {
 				[Op.in]: ["RUN"],
 			},
-			lastManualCheck: {
-				[Op.or]: [
-					{ [Op.eq]: null },
-					{
-						[Op.lt]: new Date(
-							new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
-						),
-					},
-				],
-			},
 		},
 	});
-	const allWebsCount = await WebModel.count({
+	const allWebsCount = await WebModel.count();
+	const allWebsCountWithoutWaitStatus = await WebModel.count({
 		where: {
 			status: {
 				[Op.notIn]: ["WAIT"],
-			},
-			lastManualCheck: {
-				[Op.or]: [
-					{ [Op.eq]: null },
-					{
-						[Op.lt]: new Date(
-							new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
-						),
-					},
-				],
 			},
 		},
 	});
@@ -122,10 +104,77 @@ async function checkAll() {
 			[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],
 		]);
 	} else {
-		logger.ok(
-			`✓ 状态正常的站点占比 ${runWebsPercentage.toFixed(2)}%`,
-			"APP",
+		const runWebsPercentageWithoutWaitStatus =
+		(runWebsCount / allWebsCountWithoutWaitStatus) * 100;
+
+	// 无 Token 模式跳过此部分
+	if (process.env["PUBLIC_MODE"] !== "true") {
+		// 发送 bot 消息，发送超过 maxDaysWithoutRun 天未 RUN 过的站点
+		// 具体操作是检查数据库 lastManualCheck 字段为 null 或者时间超过 maxDaysWithoutRun 的
+		// 记得排除 WAIT 状态站点，WAIT 是维护组已经处理过 issue 的，而此处输出的是待处理的
+		const maxDaysWithoutRun = 14;
+		const longTermWithoutRunWebs = await WebModel.findAll({
+			where: {
+				status: {
+					[Op.notIn]: ["WAIT"],
+				},
+				lastManualCheck: {
+					[Op.or]: [
+						{ [Op.eq]: null }, // 筛选出 lastManualCheck 字段为 null 的记录
+						{
+							// 筛选出 lastManualCheck 字段的值在 maxDaysWithoutRun 天之前的记录
+							[Op.lt]: new Date(
+								new Date().getTime() -
+									maxDaysWithoutRun * 24 * 60 * 60 * 1000,
+							),
+						},
+					],
+				},
+			},
+		});
+
+		const message: RichTextMessage = [
+			[
+				{
+					type: "text",
+					bold: true,
+					content: "开往巡查姬提醒您：",
+				},
+			],
+			[{ type: "text", content: "" }],
+		];
+		message.push([
+			{
+				type: "text",
+				content: `以下站点持续 ${maxDaysWithoutRun} 天不为 RUN 状态，请及时处理对应 issue`,
+			},
+		]);
+
+		longTermWithoutRunWebs.forEach((web) => {
+			message.push([
+				{
+					type: "text",
+					content: `${web.id} ${web.name}`,
+				},
+			]);
+		});
+
+		message.push(
+			[{ type: "text", content: "" }],
+			[
+				{
+					type: "text",
+					content: `发送时间：${time()} CST`,
+				},
+			],
 		);
+		botManager.boardcastRichTextMessage(message);
+	}
+
+	logger.ok(
+		`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%(${runWebsPercentageWithoutWaitStatus.toFixed(2)}%(without WAIT status))`,
+		"APP",
+	);
 	}
 	logger.ok("✓ 检测完成", "APP");
 }
