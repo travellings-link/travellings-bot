@@ -36,7 +36,6 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 		"travellings.cn/plain.html",
 		"travellings.cn/coder-1024.html",
 		"travellings.cn/go-by-clouds.html",
-		"travellings.link",
 	];
 	const includeLink = links.some((link) =>
 		pageContent.includes(`https://${link}`),
