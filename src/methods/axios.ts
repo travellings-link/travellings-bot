@@ -376,22 +376,22 @@ async function checkSite(
 		statusCounts["errorCount"]++;
 	}
 
-	if (checkResult.status === "RUN") {
-		axios_logger.info(
-			chalkTemplate`ID >> {white ${web.id}}, Result >> {green ${web.status}}`,
-			"AXIOS",
-		);
-	} else {
-		axios_logger.info(
-			chalkTemplate`ID >> {white ${web.id}}, Result >> {red ${web.status}}, Reason >> ${web.failedReason}`,
-			"AXIOS",
-		);
-	}
-
 	// 提交数据库修改
 	await web.update({
 		status: checkResult.status,
 		failedReason: checkResult.failedReason,
 		lastManualCheck: null,
 	});
+
+	if (checkResult.status === "RUN") {
+		axios_logger.info(
+			chalkTemplate`ID >> {white ${web.id}}, Result >> {green RUN}`,
+			"AXIOS",
+		);
+	} else {
+		axios_logger.info(
+			chalkTemplate`ID >> {white ${web.id}}, Result >> {red ${checkResult.status}}, Reason >> ${checkResult.failedReason}`,
+			"AXIOS",
+		);
+	}
 }
