@@ -160,7 +160,7 @@ pnpm cli https://www.travellings.cn/ https://example.com
                 link TEXT NOT NULL,
                 tag TEXT,
                 failedReason TEXT,
-                lastManualCheck DATETIME
+                lastStatusRunTime DATETIME
             );
 
             -- 创建 users 表
@@ -173,7 +173,7 @@ pnpm cli https://www.travellings.cn/ https://example.com
             );
 
             -- 插入测试数据
-            INSERT INTO webs (status, name, link, tag, failedReason, lastManualCheck) VALUES
+            INSERT INTO webs (status, name, link, tag, failedReason, lastStatusRunTime) VALUES
             ('RUN', 'Example Site 1', 'https://www.luochancy.com/', 'example', NULL, NULL),
             ('RUN', 'Example Site 2', 'https://blog.xcnya.cn', 'example', NULL, NULL),
             ('RUN', 'Travellings', 'https://www.travellings.cn', 'example', NULL, NULL);

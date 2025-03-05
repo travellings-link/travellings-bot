@@ -353,7 +353,7 @@ async function checkSite(
 			"AXIOS",
 		);
 		// 数据库准备更新最近 RUN 的时间这项数据
-		web.lastManualCheck = new Date();
+		web.lastStatusRunTime = new Date();
 	} else {
 		axios_logger.info(
 			chalkTemplate`ID >> {white ${web.id}}, Result >> {red ${checkResult.status}}, Reason >> ${checkResult.failedReason}`,
@@ -365,6 +365,6 @@ async function checkSite(
 	await web.update({
 		status: checkResult.status,
 		failedReason: checkResult.failedReason,
-		lastManualCheck: web.lastManualCheck,
+		lastStatusRunTime: web.lastStatusRunTime,
 	});
 }

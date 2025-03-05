@@ -63,7 +63,7 @@ def main() -> None:
             link TEXT NOT NULL,
             tag TEXT,
             failedReason TEXT,
-            lastManualCheck DATETIME
+            lastStatusRunTime DATETIME
         );
         """
     )
@@ -84,8 +84,8 @@ def main() -> None:
     for item in data["data"]:
         cursor.execute(
             f"""
-            INSERT INTO webs (id, status, name, link, tag, failedReason, lastManualCheck) 
-            VALUES ({item["id"]}, "{item["status"]}", "{item["name"]}", "{item["url"]}", "{item["tag"]}", "{item["failedReason"]}", "{item["lastManualCheck"]}")
+            INSERT INTO webs (id, status, name, link, tag, failedReason, lastStatusRunTime) 
+            VALUES ({item["id"]}, "{item["status"]}", "{item["name"]}", "{item["url"]}", "{item["tag"]}", "{item["failedReason"]}", "{item["lastStatusRunTime"]}")
         """
         )
 

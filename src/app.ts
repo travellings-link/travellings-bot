@@ -110,7 +110,7 @@ export async function checkAll() {
 	// 无 Token 模式跳过此部分
 	if (process.env["PUBLIC_MODE"] !== "true") {
 		// 发送 bot 消息，发送超过 maxDaysWithoutRun 天未 RUN 过的站点
-		// 具体操作是检查数据库 lastManualCheck 字段为 null 或者时间超过 maxDaysWithoutRun 的
+		// 具体操作是检查数据库 lastStatusRunTime 字段为 null 或者时间超过 maxDaysWithoutRun 的
 		// 记得排除 WAIT 状态站点，WAIT 是维护组已经处理过 issue 的，而此处输出的是待处理的
 		const maxDaysWithoutRun = 14;
 		const longTermWithoutRunWebs = await WebModel.findAll({
@@ -118,11 +118,11 @@ export async function checkAll() {
 				status: {
 					[Op.notIn]: ["WAIT"],
 				},
-				lastManualCheck: {
+				lastStatusRunTime: {
 					[Op.or]: [
-						{ [Op.eq]: null }, // 筛选出 lastManualCheck 字段为 null 的记录
+						{ [Op.eq]: null }, // 筛选出 lastStatusRunTime 字段为 null 的记录
 						{
-							// 筛选出 lastManualCheck 字段的值在 maxDaysWithoutRun 天之前的记录
+							// 筛选出 lastStatusRunTime 字段的值在 maxDaysWithoutRun 天之前的记录
 							[Op.lt]: new Date(
 								new Date().getTime() -
 									maxDaysWithoutRun * 24 * 60 * 60 * 1000,

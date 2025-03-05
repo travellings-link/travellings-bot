@@ -413,7 +413,7 @@ async function checkSite(
 				await site.update({
 					status: "RUN",
 					failedReason: failedReason,
-					lastManualCheck: new Date(),
+					lastStatusRunTime: new Date(),
 				});
 
 				return;
