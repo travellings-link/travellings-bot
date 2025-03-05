@@ -21,6 +21,7 @@ import { WebModel } from "../modules/sqlModel";
 import { Logger, logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
+import { WaitToRunMessageQueue } from "../utils/messageQueue";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
@@ -260,6 +261,9 @@ export default async function browserCheck(
 						},
 					],
 				]);
+
+				// 清空队列消息
+				WaitToRunMessageQueue.getInstance().clearAndNotify();
 			}
 		}
 	}
@@ -459,15 +463,11 @@ async function checkSite(
 		switch (siteStatusResult) {
 			case "RUN":
 				// RUN 状态站点 无需 pushToLark
-
-				await WebModel.update(
-					{
-						status: "RUN",
-						failedReason: null,
-						lastManualCheck: null,
-					},
-					{ where: { id: site.id } },
-				);
+				await site.update({
+					status: "RUN",
+					failedReason: null,
+					lastManualCheck: null,
+				});
 
 				statusCounts["run"]++;
 
@@ -478,14 +478,11 @@ async function checkSite(
 				return;
 			case "LOST":
 				await pushToLark(site);
-				await WebModel.update(
-					{
-						status: "LOST",
-						failedReason: null,
-						lastManualCheck: null,
-					},
-					{ where: { id: site.id } },
-				);
+				await site.update({
+					status: "LOST",
+					failedReason: null,
+					lastManualCheck: null,
+				});
 
 				statusCounts["lost"]++;
 
@@ -497,14 +494,11 @@ async function checkSite(
 			default:
 				await pushToLark(site);
 
-				await WebModel.update(
-					{
-						status: siteStatusResult,
-						failedReason: null,
-						lastManualCheck: null,
-					},
-					{ where: { id: site.id } },
-				);
+				await site.update({
+					status: siteStatusResult,
+					failedReason: null,
+					lastManualCheck: null,
+				});
 
 				if (siteStatusResult.startsWith("4")) {
 					failedReason = "Client Error";
@@ -526,10 +520,7 @@ async function checkSite(
 	} catch (error) {
 		await pushToLark(site);
 
-		await WebModel.update(
-			{ lastManualCheck: null },
-			{ where: { id: site.id } },
-		);
+		await site.update({ lastManualCheck: null });
 
 		statusCounts["errorCount"]++;
 

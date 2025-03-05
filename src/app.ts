@@ -22,15 +22,13 @@ import { screenshot } from "./bot/commands/screenshot";
 import { version } from "./bot/commands/version";
 import { requireAdmin } from "./bot/middlewares/requireAdmin";
 import { requireSpecifiedChat } from "./bot/middlewares/requireSpecifiedChat";
-import { RichTextMessage } from "./bot/utils/richTextMessage";
 import { config } from "./config";
 import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
 import sql from "./modules/sqlConfig";
 import { WebModel } from "./modules/sqlModel";
-import { logger, time } from "./modules/typedLogger";
+import { logger } from "./modules/typedLogger";
 import { asyncPool } from "./utils/asyncPool";
-import { WaitToRunMessageQueue } from "./utils/messageQueue";
 
 export const global = {
 	version: "7.0.0",
@@ -79,48 +77,6 @@ async function checkAll() {
 	const runWebsPercentage = (runWebsCount / allWebsCount) * 100;
 
 	logger.ok(`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%`, "APP");
-	const idQueue = WaitToRunMessageQueue.getInstance();
-
-	if (process.env["PUBLIC_MODE"] !== "true" && !idQueue.isEmpty()) {
-		const message: RichTextMessage = [
-			[
-				{
-					type: "text",
-					bold: true,
-					content: "开往巡查姬提醒您：",
-				},
-			],
-		];
-		message.push([
-			{
-				type: "text",
-				content:
-					"以下的站点从 WAIT 恢复到 RUN 状态，请及时处理对应 issue",
-			},
-		]);
-		while (!idQueue.isEmpty()) {
-			const id = idQueue.dequeue();
-			if (id !== undefined) {
-				message.push([
-					{
-						type: "text",
-						content: `${id}`,
-					},
-				]);
-			}
-		}
-		message.push(
-			[{ type: "text", content: "" }],
-			[
-				{
-					type: "text",
-					content: `发送时间：${time()} CST`,
-				},
-			],
-		);
-		botManager.boardcastRichTextMessage(message);
-	}
-
 	logger.ok("△ 检测完成，Sleep.", "APP");
 }
 
