@@ -22,6 +22,6 @@ export async function clearTravellingsAPICache(logger: Logger) {
 			headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
 		});
 	} catch (e) {
-		logger.err((e as Error).message, "REDIS");
+		logger.err((e as Error).message, "TRAVELLINGS API");
 	}
 }

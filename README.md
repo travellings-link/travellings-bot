@@ -7,14 +7,13 @@
 
 - Node.JS ≥ 18
 - MySQL ≥ 8.0
-- Redis ≥ 7.0
 - pnpm
 
 ## 技术栈
 
 - **后端运行时环境**: Node.js
 - **框架和库**: Telegraf, Sequelize
-- **数据库**: MySQL, Redis
+- **数据库**: MySQL
 - **网络请求**: Axios
 - **浏览器自动化**: Puppeteer
 - **第三方服务**: Lark Node.js SDK
@@ -200,7 +199,7 @@ pnpm run dev-public
 
 ### 以有 Token 模式运行
 
-需要在 `.env` 配置 Bot/开往 API，以及 REDIS 服务器才能启动
+需要在 `.env` 配置 Bot/开往 API
 
 启动开发服务器：
 
@@ -210,7 +209,7 @@ pnpm run dev
 
 ### 在生产环境模式运行
 
-需要在 `.env` 配置 Bot/开往 API，以及 REDIS 服务器才能启动
+需要在 `.env` 配置 Bot/开往 API
 
 进行项目构建
 
