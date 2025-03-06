@@ -30,7 +30,7 @@ class BotManager implements BotAdapter {
 	): void {
 		let wrappedCallback: MessageProcessor;
 		// 列表内指令是白名单，不论指令系统是否禁用都可使用
-		if (["echo", "enable"].includes(commandName)) {
+		if (["echo", "enable", "disable"].includes(commandName)) {
 			wrappedCallback = onMessageCallback;
 		} else {
 			wrappedCallback = async (message) => {
