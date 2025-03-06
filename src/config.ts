@@ -85,6 +85,6 @@ export const config = {
 		: 50,
 
 	// ENABLE
-	SCHEDULE_TASK_ENABLE: false,
+	SCHEDULE_TASK_ENABLE: true,
 	COMMAND_ENABLE: true,
 };
