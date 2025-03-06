@@ -84,7 +84,7 @@ WebModel.init(
 							`ID >> ${webModel.id}, SQL >> WAIT → RUN`,
 							"SQL",
 						);
-						if (process.env["PUBLIC_MODE"] !== "true") {
+						if (process.env["NO_TOKEN_MODE"] !== "true") {
 							WaitToRunMessageQueue.getInstance().enqueue(
 								webModel.id,
 							);

@@ -11,6 +11,19 @@ export const config = {
 	// Github Auth
 	// GH_PRIVATE_KEY: process.env.GH_PRIVATE_KEY || './data/privateKey.pem',
 
+	// BOT_ID
+	BOT_ID:
+		process.env["BOT_ID"] ||
+		(() => {
+			const chars =
+				"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+			let uuid = "";
+			for (let i = 0; i < 8; i++) {
+				uuid += chars.charAt(Math.floor(Math.random() * chars.length));
+			}
+			return uuid;
+		})(),
+
 	// Temp
 	TMP_PATH: process.env["TMP_PATH"] || path.join(process.cwd(), "tmp"),
 
