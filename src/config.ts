@@ -7,23 +7,7 @@ if (!process.env["LOADED_CONFIG"]) {
 	process.env["LOADED_CONFIG"] = "true"; // 标记 dotenv 已加载
 }
 
-export const config = {
-	// Github Auth
-	// GH_PRIVATE_KEY: process.env.GH_PRIVATE_KEY || './data/privateKey.pem',
-
-	// BOT_ID
-	BOT_ID:
-		process.env["BOT_ID"] ||
-		(() => {
-			const chars =
-				"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-			let uuid = "";
-			for (let i = 0; i < 8; i++) {
-				uuid += chars.charAt(Math.floor(Math.random() * chars.length));
-			}
-			return uuid;
-		})(),
-
+export let config = {
 	// Temp
 	TMP_PATH: process.env["TMP_PATH"] || path.join(process.cwd(), "tmp"),
 
@@ -54,12 +38,6 @@ export const config = {
 		? process.env["LARK_CHATID"].split(",")
 		: ["oc_bcc115f23153490d907d7f6793e6fdc0"],
 
-	// Redis
-	REDIS_HOST: process.env["REDIS_HOST"] || "127.0.0.1",
-	REDIS_PORT: process.env["REDIS_PORT"]
-		? parseInt(process.env["REDIS_PORT"])
-		: 6379,
-
 	// API
 	API_URL: process.env["API_URL"] || "https://api.travellings.cn",
 	API_TOKEN: process.env["API_TOKEN"] || "114514",
@@ -79,12 +57,11 @@ export const config = {
 		? parseInt(process.env["BROWSER_CHECK_MAX_CONCURRENT"])
 		: 1,
 
-	// Min run sites percentage
+	// Minimum run sites percentage
 	MIN_RUN_SITES_PERCENTAGE: process.env["MIN_RUN_SITES_PERCENTAGE"]
 		? parseFloat(process.env["MIN_RUN_SITES_PERCENTAGE"])
 		: 50,
 
-	// ENABLE
-	SCHEDULE_TASK_ENABLE: true,
-	COMMAND_ENABLE: true,
+	// Run Mode
+	NO_TOKEN_MODE: process.env["NO_TOKEN_MODE"] === "true",
 };

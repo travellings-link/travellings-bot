@@ -1,3 +1,4 @@
+import { config } from "../config";
 import {
 	BotAdapter,
 	ErrorProcessor,
@@ -10,7 +11,7 @@ class BotManager implements BotAdapter {
 
 	async boardcastRichTextMessage(message: RichTextMessage): Promise<void> {
 		// 避免在无 Token 模式下尝试发送信息
-		if (process.env["NO_TOKEN_MODE"] === "true") {
+		if (config.NO_TOKEN_MODE) {
 			return;
 		}
 
@@ -38,7 +39,7 @@ class BotManager implements BotAdapter {
 	}
 	async boardcastMessage(message: string): Promise<void> {
 		// 避免在无 Token 模式下尝试发送信息
-		if (process.env["NO_TOKEN_MODE"] === "true") {
+		if (config.NO_TOKEN_MODE) {
 			return;
 		}
 

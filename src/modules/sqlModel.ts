@@ -13,6 +13,7 @@ import {
 	Model,
 } from "sequelize";
 
+import { config } from "../config";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
 import sql from "./sqlConfig";
 import { Logger } from "./typedLogger";
@@ -71,24 +72,24 @@ WebModel.init(
 			beforeUpdate: async (webModel, _options) => {
 				const sql_logger = new Logger("_SQL");
 				if (webModel.previous("status") === "WAIT") {
-					if (webModel.status !== "RUN") {
+					if (webModel.status === "RUN") {
+						sql_logger.debug(
+							`ID >> ${webModel.id}, SQL >> WAIT → RUN`,
+							"SQL",
+						);
+						if (!config.NO_TOKEN_MODE) {
+							WaitToRunMessageQueue.getInstance().enqueue(
+								webModel.id,
+							);
+						}
+					} else {
 						// 阻止从 WAIT 修改到非 RUN
-						sql_logger.info(
+						sql_logger.debug(
 							`ID >> ${webModel.id}, SQL >> WAIT x→ ${webModel.status}`,
 							"SQL",
 						);
 						// 手动将 status 设置回 WAIT
 						webModel.status = "WAIT";
-					} else {
-						sql_logger.info(
-							`ID >> ${webModel.id}, SQL >> WAIT → RUN`,
-							"SQL",
-						);
-						if (process.env["NO_TOKEN_MODE"] !== "true") {
-							WaitToRunMessageQueue.getInstance().enqueue(
-								webModel.id,
-							);
-						}
 					}
 				}
 			},

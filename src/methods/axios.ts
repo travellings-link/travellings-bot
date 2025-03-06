@@ -16,11 +16,12 @@ import { Op } from "sequelize";
 import { botManager } from "../bot/botManager";
 import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
-import { Logger, time } from "../modules/typedLogger";
+import { Logger } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
 import { clearTravellingsAPICache } from "../utils/clearTravellingsAPICache";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
+import { durationTime, time } from "../utils/time";
 
 /**
  * 判断 HTTP 状态码是否需要重试。
@@ -114,14 +115,6 @@ const axiosConfig = {
 	validateStatus: null,
 };
 
-// 定义 log
-function spentTime(input: number) {
-	const hours = Math.floor(input / 3600);
-	const minutes = Math.floor((input % 3600) / 60);
-	const seconds = Math.floor(input % 60);
-	return `${hours}小时 ${minutes}分 ${seconds}秒`;
-}
-
 /**
  * 检查网站的状态，并根据传入的参数决定检查单个 URL 或者多个网站。
  *
@@ -148,7 +141,8 @@ export default async function normalCheck(
 	if (inputURL) {
 		// 如果传入 URL 参数，则只检查指定 URL 的网站
 		return await checkSingleURL(inputURL, axios_logger, looseMode);
-	} else if (inputID) {
+	}
+	if (inputID) {
 		// 如果传入参数，则只检查指定 ID 的网站
 		const site = await WebModel.findOne({
 			where: {
@@ -196,44 +190,42 @@ export default async function normalCheck(
 	const maxConcurrent = config.AXIOS_CHECK_MAX_CONCURRENT;
 	await asyncPool(maxConcurrent, webs, async (web) => {
 		await checkSite(web, axios_logger, statusCounts, looseMode);
-		statusCounts["total"]++;
+		statusCounts.total++;
 	});
 
 	const endTime = new Date();
 	const input = (endTime.getTime() - startTime.getTime()) / 1000;
 
+	// 调用开往 API 清除缓存
+	clearTravellingsAPICache(axios_logger);
+
+	// 发送 bot 消息
+	botManager.boardcastRichTextMessage([
+		[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
+		[{ type: "text", content: "" }],
+		[{ type: "text", content: "本次巡查方式：Axios" }],
+		[{ type: "text", content: `持续了 ${durationTime(input)}` }],
+		[{ type: "text", content: "" }],
+		[{ type: "text", bold: true, content: "巡查报告" }],
+		[
+			{
+				type: "text",
+				content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
+			},
+		],
+		[{ type: "text", content: "" }],
+		[{ type: "text", content: `发送时间：${time()} CST` }],
+		[{ type: "text", bold: true, content: "备注：巡查所有站点" }],
+	]);
+
 	// 无 Token 模式跳过此部分
-	if (process.env["NO_TOKEN_MODE"] !== "true") {
-		// 调用开往 API 清除缓存
-		clearTravellingsAPICache(axios_logger);
-
-		// 发送 bot 消息
-		botManager.boardcastRichTextMessage([
-			[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
-			[{ type: "text", content: "" }],
-			[{ type: "text", content: "本次巡查方式：Axios" }],
-			[{ type: "text", content: `持续了 ${spentTime(input)}` }],
-			[{ type: "text", content: "" }],
-			[{ type: "text", bold: true, content: "巡查报告" }],
-			[
-				{
-					type: "text",
-					content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
-				},
-			],
-			[{ type: "text", content: "" }],
-			[{ type: "text", content: `发送时间：${time()} CST` }],
-			[{ type: "text", bold: true, content: "备注：巡查所有站点" }],
-		]);
-
+	if (!config.NO_TOKEN_MODE) {
 		// 清空队列消息
 		WaitToRunMessageQueue.getInstance().clearAndNotify();
 	}
 
 	// 发送日志
-	const stats = `检测耗时：${spentTime(
-		input,
-	)}｜总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`;
+	const stats = `检测耗时：${durationTime(input)}｜总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`;
 	axios_logger.info(` 检测完成 >> ${stats}`, "AXIOS");
 }
 
@@ -356,18 +348,18 @@ async function checkSite(
 	const checkResult = await checkSingleURL(web.link, axios_logger, looseMode);
 
 	if (checkResult.status == "RUN") {
-		statusCounts["run"]++;
+		statusCounts.run++;
 	} else if (checkResult.status == "LOST") {
-		statusCounts["lost"]++;
+		statusCounts.lost++;
 	} else if (checkResult.status.startsWith("4")) {
-		statusCounts["fourxx"]++;
+		statusCounts.fourxx++;
 	} else if (checkResult.status.startsWith("5")) {
-		statusCounts["fivexx"]++;
+		statusCounts.fivexx++;
 	} else if (checkResult.status == "TIMEOUT") {
-		statusCounts["timeout"]++;
+		statusCounts.timeout++;
 	} else {
 		// checkResult.status === "ERROR" or 其他特殊 HTTP CODE
-		statusCounts["errorCount"]++;
+		statusCounts.errorCount++;
 	}
 
 	// 提交数据库修改

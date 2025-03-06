@@ -17,23 +17,17 @@ import { Op } from "sequelize";
 import { botManager } from "../bot/botManager";
 import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
-import { Logger, logger, time } from "../modules/typedLogger";
+import { Logger, logger } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
 import { clearTravellingsAPICache } from "../utils/clearTravellingsAPICache";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
+import { durationTime, time } from "../utils/time";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
 if (!fs.existsSync(tmpPath)) {
 	fs.mkdirSync(tmpPath);
-}
-
-function spentTime(input: number) {
-	const hours = Math.floor(input / 3600);
-	const minutes = Math.floor((input % 3600) / 60);
-	const seconds = Math.floor(input % 60);
-	return `${hours}小时 ${minutes}分 ${seconds}秒`;
 }
 
 /**
@@ -132,7 +126,8 @@ export default async function browserCheck(
 				looseMode,
 			);
 			return cliModeResult;
-		} else if (inputID) {
+		}
+		if (inputID) {
 			// 如果传入 ID 参数，则只检查指定 ID 的网站
 			const site = await WebModel.findOne({
 				where: {
@@ -148,7 +143,7 @@ export default async function browserCheck(
 					statusCounts,
 					looseMode,
 				);
-				statusCounts["total"]++;
+				statusCounts.total++;
 			} else {
 				browser_logger.err("指定的 ID 不存在", "BROWSER");
 				return;
@@ -200,48 +195,52 @@ export default async function browserCheck(
 			const endTime = new Date();
 			const input = (endTime.getTime() - startTime.getTime()) / 1000;
 
-			const stats = `检测耗时：${spentTime(
+			const stats = `检测耗时：${durationTime(
 				input,
 			)}｜总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`;
 			browser_logger.info(`检测完成 >> ${stats}`, "BROWSER");
 
+			// 调用开往 API 清除缓存
+			clearTravellingsAPICache(logger);
+
+			// 发送 bot 消息
+			botManager.boardcastRichTextMessage([
+				[
+					{
+						type: "text",
+						bold: true,
+						content: "开往巡查姬提醒您：",
+					},
+				],
+				[{ type: "text", content: "" }],
+				[{ type: "text", content: "本次巡查方式：Browser" }],
+				[
+					{
+						type: "text",
+						content: `持续了 ${durationTime(input)}`,
+					},
+				],
+				[{ type: "text", content: "" }],
+				[{ type: "text", bold: true, content: "巡查报告" }],
+				[
+					{
+						type: "text",
+						content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
+					},
+				],
+				[{ type: "text", content: "" }],
+				[{ type: "text", content: `发送时间：${time()} CST` }],
+				[
+					{
+						type: "text",
+						bold: true,
+						content: "备注：仅巡查 LOST、ERROR 和 403 状态的站点",
+					},
+				],
+			]);
+
 			// 无 Token 模式跳过后面的步骤
-			if (process.env["NO_TOKEN_MODE"] !== "true") {
-				// 调用开往 API 清除缓存
-				clearTravellingsAPICache(logger);
-
-				// 发送 bot 消息
-				botManager.boardcastRichTextMessage([
-					[
-						{
-							type: "text",
-							bold: true,
-							content: "开往巡查姬提醒您：",
-						},
-					],
-					[{ type: "text", content: "" }],
-					[{ type: "text", content: "本次巡查方式：Browser" }],
-					[{ type: "text", content: `持续了 ${spentTime(input)}` }],
-					[{ type: "text", content: "" }],
-					[{ type: "text", bold: true, content: "巡查报告" }],
-					[
-						{
-							type: "text",
-							content: `总共: ${statusCounts["total"]} 个｜RUN: ${statusCounts["run"]} 个｜LOST: ${statusCounts["lost"]} 个｜4XX: ${statusCounts["fourxx"]} 个｜5XX: ${statusCounts["fivexx"]} 个｜ERROR: ${statusCounts["errorCount"]} 个｜TIMEOUT: ${statusCounts["timeout"]} 个`,
-						},
-					],
-					[{ type: "text", content: "" }],
-					[{ type: "text", content: `发送时间：${time()} CST` }],
-					[
-						{
-							type: "text",
-							bold: true,
-							content:
-								"备注：仅巡查 LOST、ERROR 和 403 状态的站点",
-						},
-					],
-				]);
-
+			if (!config.NO_TOKEN_MODE) {
 				// 清空队列消息
 				WaitToRunMessageQueue.getInstance().clearAndNotify();
 			}
@@ -288,7 +287,7 @@ async function checkSingleURLWithRetry(
 		attempt++;
 		if (attempt < maxRetries) {
 			log.warn(
-				chalkTemplate`URL >> {white ${siteURL}}, 等待 ${retryDelay} 毫秒后重试第 ${attempt} 次`,
+				chalkTemplate`URL >> {reset ${siteURL}}, 等待 ${retryDelay} 毫秒后重试第 ${attempt} 次`,
 				"BROWSER",
 			);
 			await new Promise((resolve) => setTimeout(resolve, retryDelay));
@@ -325,7 +324,7 @@ async function checkSingleURL(
 			// 返回码不为 200, 304
 			// response.ok() 为 true 是 200-299，但是可能有如 204 No Content，所以归入此类
 			log.info(
-				chalkTemplate`URL >> {white ${siteURL}}, Result >> {red ${response.status()}}`,
+				chalkTemplate`URL >> {reset ${siteURL}}, Result >> {red ${response.status()}}`,
 				"BROWSER",
 			);
 			return {
@@ -337,7 +336,7 @@ async function checkSingleURL(
 		// 进行内容检查
 		if (checkPageContent(await page.content(), looseMode)) {
 			log.info(
-				chalkTemplate`URL >> {white ${siteURL}}, Result >> {green RUN},`,
+				chalkTemplate`URL >> {reset ${siteURL}}, Result >> {green RUN},`,
 				"BROWSER",
 			);
 			return {
@@ -348,7 +347,7 @@ async function checkSingleURL(
 
 		// 未通过内容检查
 		log.info(
-			chalkTemplate`URL >> {white ${siteURL}}, Result >> {red LOST},`,
+			chalkTemplate`URL >> {reset ${siteURL}}, Result >> {red LOST},`,
 			"BROWSER",
 		);
 		return {
@@ -357,7 +356,7 @@ async function checkSingleURL(
 		};
 	} catch (error) {
 		log.info(
-			chalkTemplate`URL >> {white ${siteURL}}, Result >> {red ERROR}, Reason >> ${(error as Error).message}`,
+			chalkTemplate`URL >> {reset ${siteURL}}, Result >> {red ERROR}, Reason >> ${(error as Error).message}`,
 			"BROWSER",
 		);
 		return {
@@ -415,7 +414,7 @@ async function checkSite(
 				statusCounts["run"]++;
 
 				log.info(
-					chalkTemplate`ID >> {white ${site.id}}, Result >> ${site.status} → {green RUN}`,
+					chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {green RUN}`,
 					"BROWSER",
 				);
 				return;
@@ -429,7 +428,7 @@ async function checkSite(
 				statusCounts["lost"]++;
 
 				log.info(
-					chalkTemplate`ID >> {white ${site.id}}, Result >> ${site.status} → {red LOST}`,
+					chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {red LOST}`,
 					"BROWSER",
 				);
 				return;
@@ -452,7 +451,7 @@ async function checkSite(
 				}
 
 				log.info(
-					chalkTemplate`ID >> {white ${site.id}}, Result >> ${site.status} → {red ${siteStatusResult}}, Reason >> ${failedReason}: ${siteStatusResult}`,
+					chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {red ${siteStatusResult}}, Reason >> ${failedReason}: ${siteStatusResult}`,
 					"BROWSER",
 				);
 				return;
@@ -463,7 +462,7 @@ async function checkSite(
 		statusCounts["errorCount"]++;
 
 		log.info(
-			chalkTemplate`ID >> {white ${site.id}}, Result >> ${site.status} → {yellow 不做修改}, Reason >> ${(error as Error).message}`,
+			chalkTemplate`ID >> {reset ${site.id}}, Result >> ${site.status} → {yellow 不做修改}, Reason >> ${(error as Error).message}`,
 			"BROWSER",
 		);
 	}

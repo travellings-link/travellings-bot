@@ -1,6 +1,6 @@
 import { botManager } from "../bot/botManager";
 import { RichTextMessage } from "../bot/utils/richTextMessage";
-import { time } from "../modules/typedLogger";
+import { time } from "./time";
 
 /*
  * 存储从 WAIT 状态变成 RUN 状态的站点 id
