@@ -13,5 +13,17 @@ export const help: MessageProcessor = async (ctx) => {
 		[{ type: "text", content: "管理", bold: true }],
 		[{ type: "text", content: "/check :ID :Method" }],
 		[{ type: "text", content: "/screenshot :ID / :Url - 对一个站点截图" }],
+		[
+			{
+				type: "text",
+				content: "/enable :BOT_ID :SYSTEM_ID - 启用指定巡查机的某系统",
+			},
+		],
+		[
+			{
+				type: "text",
+				content: "/disable :BOT_ID :SYSTEM_ID - 禁用指定巡查机的某系统",
+			},
+		],
 	]);
 };

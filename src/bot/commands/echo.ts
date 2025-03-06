@@ -8,7 +8,13 @@ export const echo: MessageProcessor = async (ctx) => {
 		[
 			{
 				type: "text",
-				content: `运行状态: ${config.ENABLE ? "运行中" : "未运行"}`,
+				content: `指令系统状态: ${config.COMMAND_ENABLE ? "运行中" : "未运行"}`,
+			},
+		],
+		[
+			{
+				type: "text",
+				content: `定时任务状态: ${config.SCHEDULE_TASK_ENABLE ? "运行中" : "未运行"}`,
 			},
 		],
 		[

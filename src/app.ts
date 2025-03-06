@@ -16,7 +16,9 @@ import { LarkAdapter } from "./bot/adapters/larkAdapter";
 import { TelegramAdapter } from "./bot/adapters/telegramAdapter";
 import { botManager } from "./bot/botManager";
 import { check } from "./bot/commands/check";
+import { disable } from "./bot/commands/disable";
 import { echo } from "./bot/commands/echo";
+import { enable } from "./bot/commands/enable";
 import { help } from "./bot/commands/help";
 import { query } from "./bot/commands/query";
 import { screenshot } from "./bot/commands/screenshot";
@@ -252,6 +254,14 @@ botManager.registerCommand("check", requireSpecifiedChat(requireAdmin(check)));
 botManager.registerCommand(
 	"screenshot",
 	requireSpecifiedChat(requireAdmin(screenshot)),
+);
+botManager.registerCommand(
+	"enable",
+	requireSpecifiedChat(requireAdmin(enable)),
+);
+botManager.registerCommand(
+	"disable",
+	requireSpecifiedChat(requireAdmin(disable)),
 );
 
 logger.info("没到点呢，小睡一会 ~", "APP");

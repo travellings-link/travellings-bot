@@ -95,6 +95,6 @@ export const config = {
 	})(),
 
 	// ENABLE
-	SCHEDULE_TASK_ENABLE: true,
+	SCHEDULE_TASK_ENABLE: false,
 	COMMAND_ENABLE: true,
 };
