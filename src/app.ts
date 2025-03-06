@@ -29,6 +29,7 @@ import sql from "./modules/sqlConfig";
 import { WebModel } from "./modules/sqlModel";
 import { logger, time } from "./modules/typedLogger";
 import { asyncPool } from "./utils/asyncPool";
+import { clearTravellingsAPICache } from "./utils/clearTravellingsAPICache";
 
 export const global = {
 	version: "7.0.0",
@@ -90,32 +91,40 @@ async function checkAll() {
 		config.SCHEDULE_TASK_ENABLE = false;
 		// 撤回数据库修改
 		await WebModel.bulkCreate(webModels, { updateOnDuplicate: ["id"] });
-		botManager.boardcastRichTextMessage([
-			[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
-			[{ type: "text", content: "" }],
-			[
-				{
-					type: "text",
-					content: `ID 为 ${config.BOT_ID} 的巡查机巡查结果异常`,
-				},
-			],
-			[
-				{
-					type: "text",
-					bold: true,
-					content: `状态正常的站点占比为 ${runWebsPercentage.toFixed(2)}%`,
-				},
-			],
-			[
-				{
-					type: "text",
-					content: `低于可接受的最低占比 ${minRunSitesPercentage}%`,
-				},
-			],
-			[{ type: "text", content: "" }],
-			[{ type: "text", content: `已自动禁用该巡查机的自动巡查任务` }],
-			[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],
-		]);
+
+		// 无 Token 模式跳过此部分
+		if (process.env["NO_TOKEN_MODE"] !== "true") {
+			// 调用开往 API 清除缓存
+			clearTravellingsAPICache(logger);
+
+			// 发送 bot 消息
+			botManager.boardcastRichTextMessage([
+				[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
+				[{ type: "text", content: "" }],
+				[
+					{
+						type: "text",
+						content: `ID 为 ${config.BOT_ID} 的巡查机巡查结果异常`,
+					},
+				],
+				[
+					{
+						type: "text",
+						bold: true,
+						content: `状态正常的站点占比为 ${runWebsPercentage.toFixed(2)}%`,
+					},
+				],
+				[
+					{
+						type: "text",
+						content: `低于可接受的最低占比 ${minRunSitesPercentage}%`,
+					},
+				],
+				[{ type: "text", content: "" }],
+				[{ type: "text", content: `已自动禁用该巡查机的自动巡查任务` }],
+				[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],
+			]);
+		}
 	} else {
 		logger.ok(
 			`✓ 状态正常的站点占比 ${runWebsPercentage.toFixed(2)}%`,

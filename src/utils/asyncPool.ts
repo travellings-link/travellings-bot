@@ -1,3 +1,11 @@
+/**
+ * 一个池，用于调用异步函数，并且限制并发数
+ *
+ * @param concurrentLimit 并发数限制
+ * @param inputValues 输入值数组
+ * @param iteratorFn 异步函数
+ * @returns
+ */
 export async function asyncPool<T>(
 	concurrentLimit: number,
 	inputValues: T[],

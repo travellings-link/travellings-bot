@@ -19,6 +19,7 @@ import { WebModel } from "../modules/sqlModel";
 import { Logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
+import { clearTravellingsAPICache } from "../utils/clearTravellingsAPICache";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
 
 /**
@@ -204,14 +205,7 @@ export default async function normalCheck(
 	// 无 Token 模式跳过此部分
 	if (process.env["NO_TOKEN_MODE"] !== "true") {
 		// 调用开往 API 清除缓存
-		try {
-			await axios.get(`${config.API_URL}/all`);
-			await axios.delete(`${config.API_URL}/action/purgeCache`, {
-				headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
-			});
-		} catch (e) {
-			axios_logger.err((e as Error).message, "REDIS");
-		}
+		clearTravellingsAPICache(axios_logger);
 
 		// 发送 bot 消息
 		botManager.boardcastRichTextMessage([
