@@ -84,7 +84,7 @@ export const config = {
 	MIN_RUN_SITES_PERCENTAGE: process.env["MIN_RUN_SITES_PERCENTAGE"]
 		? parseFloat(process.env["MIN_RUN_SITES_PERCENTAGE"])
 		: 50,
-	
+
 	// COMMIT_HASH
 	COMMIT_HASH: (() => {
 		try {
