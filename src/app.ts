@@ -80,10 +80,10 @@ async function checkAll() {
 	// 计算百分比：检查为 RUN 的站点数/需要检查的站点数
 	const runWebsPercentage = (runWebsCount / allWebsCount) * 100;
 	// 可接受的最低占比
-	const threshold = 50;
-	if (runWebsPercentage < threshold) {
+	const minRunSitesPercentage = config.MIN_RUN_SITES_PERCENTAGE;
+	if (runWebsPercentage < minRunSitesPercentage) {
 		logger.warn(
-			`△ 状态正常的站点占比低于 ${threshold}%: ${runWebsPercentage.toFixed(2)}%`,
+			`△ 状态正常的站点占比低于 ${minRunSitesPercentage}%: ${runWebsPercentage.toFixed(2)}%`,
 			"APP",
 		);
 		// 禁用自动巡查任务
@@ -106,7 +106,12 @@ async function checkAll() {
 					content: `状态正常的站点占比为 ${runWebsPercentage.toFixed(2)}%`,
 				},
 			],
-			[{ type: "text", content: `低于可接受的最低占比 ${threshold}%` }],
+			[
+				{
+					type: "text",
+					content: `低于可接受的最低占比 ${minRunSitesPercentage}%`,
+				},
+			],
 			[{ type: "text", content: "" }],
 			[{ type: "text", content: `已自动禁用该巡查机的自动巡查任务` }],
 			[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],

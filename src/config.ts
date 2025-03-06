@@ -79,6 +79,11 @@ export const config = {
 		? parseInt(process.env["BROWSER_CHECK_MAX_CONCURRENT"])
 		: 1,
 
+	// Min run sites percentage
+	MIN_RUN_SITES_PERCENTAGE: process.env["MIN_RUN_SITES_PERCENTAGE"]
+		? parseFloat(process.env["MIN_RUN_SITES_PERCENTAGE"])
+		: 50,
+
 	// ENABLE
 	SCHEDULE_TASK_ENABLE: false,
 	COMMAND_ENABLE: true,
