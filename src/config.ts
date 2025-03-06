@@ -11,6 +11,19 @@ export const config = {
 	// Github Auth
 	// GH_PRIVATE_KEY: process.env.GH_PRIVATE_KEY || './data/privateKey.pem',
 
+	// BOT_ID
+	BOT_ID:
+		process.env["BOT_ID"] ||
+		(() => {
+			const chars =
+				"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+			let uuid = "";
+			for (let i = 0; i < 8; i++) {
+				uuid += chars.charAt(Math.floor(Math.random() * chars.length));
+			}
+			return uuid;
+		})(),
+
 	// Temp
 	TMP_PATH: process.env["TMP_PATH"] || path.join(process.cwd(), "tmp"),
 
@@ -65,4 +78,13 @@ export const config = {
 	BROWSER_CHECK_MAX_CONCURRENT: process.env["BROWSER_CHECK_MAX_CONCURRENT"]
 		? parseInt(process.env["BROWSER_CHECK_MAX_CONCURRENT"])
 		: 1,
+
+	// Min run sites percentage
+	MIN_RUN_SITES_PERCENTAGE: process.env["MIN_RUN_SITES_PERCENTAGE"]
+		? parseFloat(process.env["MIN_RUN_SITES_PERCENTAGE"])
+		: 50,
+
+	// ENABLE
+	SCHEDULE_TASK_ENABLE: false,
+	COMMAND_ENABLE: true,
 };

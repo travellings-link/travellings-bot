@@ -206,8 +206,8 @@ export default async function browserCheck(
 			browser_logger.info(`检测完成 >> ${stats}`, "BROWSER");
 
 			// 无 Token 模式跳过后面的步骤
-			if (process.env["PUBLIC_MODE"] !== "true") {
-				// 清除 Redis 缓存
+			if (process.env["NO_TOKEN_MODE"] !== "true") {
+				// 调用开往 API 清除缓存
 				try {
 					await axios.get(`${config.API_URL}/all`);
 					await axios.delete(`${config.API_URL}/action/purgeCache`, {

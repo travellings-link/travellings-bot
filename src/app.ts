@@ -27,7 +27,7 @@ import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
 import sql from "./modules/sqlConfig";
 import { WebModel } from "./modules/sqlModel";
-import { logger } from "./modules/typedLogger";
+import { logger, time } from "./modules/typedLogger";
 import { asyncPool } from "./utils/asyncPool";
 
 export const global = {
@@ -36,6 +36,10 @@ export const global = {
 
 async function checkAll() {
 	logger.info("✓ 开始巡查站点", "APP");
+
+	// 备份巡查前的数据库
+	const webModels = await WebModel.findAll();
+
 	await axiosCheck();
 	await browserCheck();
 
@@ -75,9 +79,50 @@ async function checkAll() {
 	});
 	// 计算百分比：检查为 RUN 的站点数/需要检查的站点数
 	const runWebsPercentage = (runWebsCount / allWebsCount) * 100;
-
-	logger.ok(`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%`, "APP");
-	logger.ok("△ 检测完成，Sleep.", "APP");
+	// 可接受的最低占比
+	const minRunSitesPercentage = config.MIN_RUN_SITES_PERCENTAGE;
+	if (runWebsPercentage < minRunSitesPercentage) {
+		logger.warn(
+			`△ 状态正常的站点占比低于 ${minRunSitesPercentage}%: ${runWebsPercentage.toFixed(2)}%`,
+			"APP",
+		);
+		// 禁用自动巡查任务
+		config.SCHEDULE_TASK_ENABLE = false;
+		// 撤回数据库修改
+		await WebModel.bulkCreate(webModels, { updateOnDuplicate: ["id"] });
+		botManager.boardcastRichTextMessage([
+			[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
+			[{ type: "text", content: "" }],
+			[
+				{
+					type: "text",
+					content: `ID 为 ${config.BOT_ID} 的巡查机巡查结果异常`,
+				},
+			],
+			[
+				{
+					type: "text",
+					bold: true,
+					content: `状态正常的站点占比为 ${runWebsPercentage.toFixed(2)}%`,
+				},
+			],
+			[
+				{
+					type: "text",
+					content: `低于可接受的最低占比 ${minRunSitesPercentage}%`,
+				},
+			],
+			[{ type: "text", content: "" }],
+			[{ type: "text", content: `已自动禁用该巡查机的自动巡查任务` }],
+			[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],
+		]);
+	} else {
+		logger.ok(
+			`✓ 状态正常的站点占比 ${runWebsPercentage.toFixed(2)}%`,
+			"APP",
+		);
+	}
+	logger.ok("✓ 检测完成", "APP");
 }
 
 // 获取命令行参数
@@ -181,7 +226,7 @@ await sql
 if (isLocalDebug) {
 	// 本地 debug 模式 检查完就退出
 	logger.info("进入本地开发模式...", "APP");
-	process.env["PUBLIC_MODE"] = "true";
+	process.env["NO_TOKEN_MODE"] = "true";
 	await checkAll();
 	process.exit(0);
 }
@@ -201,5 +246,10 @@ botManager.registerCommand(
 logger.info("没到点呢，小睡一会 ~", "APP");
 
 schedule("0 4 * * *", () => {
-	checkAll();
+	logger.info(`定时任务开始！当前时间 ${time()}`, "APP");
+	if (config.SCHEDULE_TASK_ENABLE) {
+		checkAll();
+	} else {
+		logger.info("此巡查机定时巡查系统已被禁用，跳过定时巡查", "APP");
+	}
 });

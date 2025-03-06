@@ -212,6 +212,12 @@ pnpm run dev
 
 需要在 `.env` 配置 Bot/开往 API，以及 REDIS 服务器才能启动
 
+进行项目构建
+
+```sh
+pnpm build
+```
+
 启动生产服务器：
 
 ```sh

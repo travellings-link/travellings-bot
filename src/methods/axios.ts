@@ -202,8 +202,8 @@ export default async function normalCheck(
 	const input = (endTime.getTime() - startTime.getTime()) / 1000;
 
 	// 无 Token 模式跳过此部分
-	if (process.env["PUBLIC_MODE"] !== "true") {
-		// 清除 Redis 缓存
+	if (process.env["NO_TOKEN_MODE"] !== "true") {
+		// 调用开往 API 清除缓存
 		try {
 			await axios.get(`${config.API_URL}/all`);
 			await axios.delete(`${config.API_URL}/action/purgeCache`, {
