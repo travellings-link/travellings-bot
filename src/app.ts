@@ -16,6 +16,7 @@ import { LarkAdapter } from "./bot/adapters/larkAdapter";
 import { TelegramAdapter } from "./bot/adapters/telegramAdapter";
 import { botManager } from "./bot/botManager";
 import { check } from "./bot/commands/check";
+import { echo } from "./bot/commands/echo";
 import { help } from "./bot/commands/help";
 import { query } from "./bot/commands/query";
 import { screenshot } from "./bot/commands/screenshot";
@@ -246,6 +247,7 @@ botManager.registerAdapter(new LarkAdapter());
 botManager.registerCommand("help", help);
 botManager.registerCommand("version", version);
 botManager.registerCommand("query", requireSpecifiedChat(query));
+botManager.registerCommand("echo", requireSpecifiedChat(echo));
 botManager.registerCommand("check", requireSpecifiedChat(requireAdmin(check)));
 botManager.registerCommand(
 	"screenshot",

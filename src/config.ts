@@ -1,4 +1,5 @@
 // 别动这个
+import { execSync } from "child_process";
 import { config as dotenv_config } from "dotenv";
 import path from "path";
 
@@ -83,6 +84,15 @@ export const config = {
 	MIN_RUN_SITES_PERCENTAGE: process.env["MIN_RUN_SITES_PERCENTAGE"]
 		? parseFloat(process.env["MIN_RUN_SITES_PERCENTAGE"])
 		: 50,
+	
+	// COMMIT_HASH
+	COMMIT_HASH: (() => {
+		try {
+			return execSync("git rev-parse HEAD").toString().trim();
+		} catch (error) {
+			return `获取失败 ${(error as Error).message}`;
+		}
+	})(),
 
 	// ENABLE
 	SCHEDULE_TASK_ENABLE: true,
