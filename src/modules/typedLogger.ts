@@ -4,14 +4,10 @@
 // Migration Author: Allen You
 import chalk from "chalk";
 import fs, { WriteStream } from "fs";
-import moment from "moment-timezone";
 import path from "path";
 
 import { config } from "../config";
-
-export function time() {
-	return moment.tz("Asia/Shanghai").format("YYYY-MM-DD HH:mm:ss");
-}
+import { time } from "../utils/time";
 
 if (!fs.existsSync(config.LOG_PATH) && config.LOG_ENABLE) {
 	fs.mkdirSync(config.LOG_PATH);
@@ -55,10 +51,7 @@ export class Logger {
 		if (this.enableWrite) {
 			// Create file write stream
 			this.logStream = fs.createWriteStream(
-				path.join(
-					config.LOG_PATH,
-					`${moment.tz("Asia/Shanghai").format("YYYY-MM-DD HH-mm-ss")}${suffix}.log`,
-				),
+				path.join(config.LOG_PATH, `${time()}${suffix}.log`),
 				{ flags: "a" },
 			);
 		}

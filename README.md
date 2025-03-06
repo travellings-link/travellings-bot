@@ -258,4 +258,4 @@ screenshot - 截图站点
 ## 版权
 
 Under [GPL v3](https://www.gnu.org/licenses/gpl-3.0.html)  
-2024 © Travellings-link Project. All rights reserved.
+2025 © Travellings-link Project. All rights reserved.

@@ -8,6 +8,7 @@
 // Travellings Check Bot Main
 // By BLxcwg666 <huixcwg@gmail.com>
 // 2024/01/16 18:10 CST
+import chalkTemplate from "chalk-template";
 import { writeFileSync } from "fs";
 import { schedule } from "node-cron";
 import { Op } from "sequelize";
@@ -27,12 +28,13 @@ import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
 import sql from "./modules/sqlConfig";
 import { WebModel } from "./modules/sqlModel";
-import { logger, time } from "./modules/typedLogger";
+import { logger } from "./modules/typedLogger";
 import { asyncPool } from "./utils/asyncPool";
 import { clearTravellingsAPICache } from "./utils/clearTravellingsAPICache";
+import { time } from "./utils/time";
 
 export const global = {
-	version: "7.0.0",
+	version: "8.0.0",
 };
 
 async function checkAll() {
@@ -87,44 +89,38 @@ async function checkAll() {
 			`△ 状态正常的站点占比低于 ${minRunSitesPercentage}%: ${runWebsPercentage.toFixed(2)}%`,
 			"APP",
 		);
-		// 禁用自动巡查任务
-		config.SCHEDULE_TASK_ENABLE = false;
 		// 撤回数据库修改
 		await WebModel.bulkCreate(webModels, { updateOnDuplicate: ["id"] });
 
-		// 无 Token 模式跳过此部分
-		if (process.env["NO_TOKEN_MODE"] !== "true") {
-			// 调用开往 API 清除缓存
-			clearTravellingsAPICache(logger);
+		// 调用开往 API 清除缓存
+		clearTravellingsAPICache(logger);
 
-			// 发送 bot 消息
-			botManager.boardcastRichTextMessage([
-				[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
-				[{ type: "text", content: "" }],
-				[
-					{
-						type: "text",
-						content: `ID 为 ${config.BOT_ID} 的巡查机巡查结果异常`,
-					},
-				],
-				[
-					{
-						type: "text",
-						bold: true,
-						content: `状态正常的站点占比为 ${runWebsPercentage.toFixed(2)}%`,
-					},
-				],
-				[
-					{
-						type: "text",
-						content: `低于可接受的最低占比 ${minRunSitesPercentage}%`,
-					},
-				],
-				[{ type: "text", content: "" }],
-				[{ type: "text", content: `已自动禁用该巡查机的自动巡查任务` }],
-				[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],
-			]);
-		}
+		// 发送 bot 消息
+		botManager.boardcastRichTextMessage([
+			[{ type: "text", bold: true, content: "开往巡查姬提醒您：" }],
+			[{ type: "text", content: "" }],
+			[
+				{
+					type: "text",
+					content: `巡查机巡查结果异常`,
+				},
+			],
+			[
+				{
+					type: "text",
+					bold: true,
+					content: `状态正常的站点占比为 ${runWebsPercentage.toFixed(2)}%`,
+				},
+			],
+			[
+				{
+					type: "text",
+					content: `低于可接受的最低占比 ${minRunSitesPercentage}%`,
+				},
+			],
+			[{ type: "text", content: "" }],
+			[{ type: "text", content: `已自动撤回此次巡查的数据库修改` }],
+		]);
 	} else {
 		logger.ok(
 			`✓ 状态正常的站点占比 ${runWebsPercentage.toFixed(2)}%`,
@@ -149,7 +145,7 @@ _____                    _ _ _                     ____ _               _       
  |_||_|  \\__,_| \\_/ \\___|_|_|_|_| |_|\\__, |___/   \\____|_| |_|\\___|\\___|_|\\_\\  |____/ \\___/ \\__|
                                      |___/                                                      
 
-          Copyright © 2020-2024 Travellings Project. All rights reserved.  //  Version ${global.version}
+          Copyright © 2020-2025 Travellings Project. All rights reserved.  //  Version ${global.version}
 `);
 
 interface SiteResults {
@@ -164,9 +160,6 @@ interface SiteResults {
 }
 
 if (isCLIMode) {
-	// 本地 cli 模式
-	process.env["CLI_MODE"] = "true";
-
 	// 过滤掉 -cli 项
 	const urls = args.filter((arg) => arg !== "-cli");
 	const siteResults: SiteResults = { results: {} };
@@ -200,16 +193,19 @@ if (isCLIMode) {
 
 	// 进行 Browser 检查，使用 asyncPool 限制同时查询数
 	await asyncPool(config.BROWSER_CHECK_MAX_CONCURRENT, urls, async (url) => {
-		logger.info(`browserCheck 开始巡查站点 \x1b[0m${url}\x1b[34m`, "APP");
+		logger.info(
+			chalkTemplate`browserCheck 开始巡查站点 {reset ${url}}`,
+			"APP",
+		);
 		await browserCheck(undefined, url).then((browserResult) => {
 			if (!browserResult) {
 				logger.err(
-					`\x1b[0m${url}\x1b[34m 未能获取到 browserCheck 的结果`,
+					chalkTemplate`{reset ${url}} 未能获取到 browserCheck 的结果`,
 					"APP",
 				);
 			} else {
 				if (siteResults.results[url]) {
-					siteResults.results[url]["browserCheck"]["status"] =
+					siteResults.results[url].browserCheck.status =
 						browserResult.status;
 				}
 			}
@@ -235,7 +231,7 @@ await sql
 if (isLocalDebug) {
 	// 本地 debug 模式 检查完就退出
 	logger.info("进入本地开发模式...", "APP");
-	process.env["NO_TOKEN_MODE"] = "true";
+	config.NO_TOKEN_MODE = true;
 	await checkAll();
 	process.exit(0);
 }
@@ -256,9 +252,5 @@ logger.info("没到点呢，小睡一会 ~", "APP");
 
 schedule("0 4 * * *", () => {
 	logger.info(`定时任务开始！当前时间 ${time()}`, "APP");
-	if (config.SCHEDULE_TASK_ENABLE) {
-		checkAll();
-	} else {
-		logger.info("此巡查机定时巡查系统已被禁用，跳过定时巡查", "APP");
-	}
+	checkAll();
 });

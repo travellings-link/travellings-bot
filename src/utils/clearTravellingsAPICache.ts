@@ -11,7 +11,7 @@ import { Logger } from "../modules/typedLogger";
  */
 export async function clearTravellingsAPICache(logger: Logger) {
 	// 无 Token 模式跳过此部分
-	if (process.env["NO_TOKEN_MODE"] === "true") {
+	if (config.NO_TOKEN_MODE) {
 		return;
 	}
 
