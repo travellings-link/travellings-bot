@@ -65,4 +65,8 @@ export const config = {
 	BROWSER_CHECK_MAX_CONCURRENT: process.env["BROWSER_CHECK_MAX_CONCURRENT"]
 		? parseInt(process.env["BROWSER_CHECK_MAX_CONCURRENT"])
 		: 1,
+
+	// ENABLE
+	SCHEDULE_TASK_ENABLE: false,
+	COMMAND_ENABLE: true,
 };
