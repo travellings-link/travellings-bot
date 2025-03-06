@@ -7,7 +7,7 @@ if (!process.env["LOADED_CONFIG"]) {
 	process.env["LOADED_CONFIG"] = "true"; // 标记 dotenv 已加载
 }
 
-export let config = {
+export const config = {
 	// Temp
 	TMP_PATH: process.env["TMP_PATH"] || path.join(process.cwd(), "tmp"),
 
