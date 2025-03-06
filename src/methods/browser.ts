@@ -8,7 +8,6 @@
 // By <huixcwg@gmail.com>
 // 2024/01/16 13:39 CST
 // Migrated to ESM & Typescript on 2024/10/10 by Allenyou <i@allenyou.wang>
-import axios from "axios";
 import chalkTemplate from "chalk-template";
 import fs from "fs";
 import path from "path";
@@ -21,6 +20,7 @@ import { WebModel } from "../modules/sqlModel";
 import { Logger, logger, time } from "../modules/typedLogger";
 import { asyncPool } from "../utils/asyncPool";
 import { checkPageContent } from "../utils/checkPageContent";
+import { clearTravellingsAPICache } from "../utils/clearTravellingsAPICache";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
 
 // 如果不存在 tmp 就创建一个
@@ -208,14 +208,7 @@ export default async function browserCheck(
 			// 无 Token 模式跳过后面的步骤
 			if (process.env["NO_TOKEN_MODE"] !== "true") {
 				// 调用开往 API 清除缓存
-				try {
-					await axios.get(`${config.API_URL}/all`);
-					await axios.delete(`${config.API_URL}/action/purgeCache`, {
-						headers: { Cookie: `_tlogin=${config.API_TOKEN}` },
-					});
-				} catch (e) {
-					logger.err((e as Error).message, "REDIS");
-				}
+				clearTravellingsAPICache(logger);
 
 				// 发送 bot 消息
 				botManager.boardcastRichTextMessage([
