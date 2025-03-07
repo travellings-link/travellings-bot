@@ -39,7 +39,7 @@ export const global = {
 };
 
 export async function checkAll() {
-	logger.info("✓ 开始巡查全部站点", "APP");
+	logger.info("✓ 开始巡查站点", "APP");
 
 	// 备份巡查前的数据库
 	const webModels = await WebModel.findAll();
@@ -172,7 +172,7 @@ export async function checkAll() {
 		}
 
 		logger.ok(
-			`✓ 运行中的站点占比 ${runWebsPercentage.toFixed(2)}%(${runWebsPercentageWithoutWaitStatus.toFixed(2)}%(without WAIT status))`,
+			`✓ 状态正常的站点占比 ${runWebsPercentage.toFixed(2)}%(${runWebsPercentageWithoutWaitStatus.toFixed(2)}%(without WAIT status))`,
 			"APP",
 		);
 	}
