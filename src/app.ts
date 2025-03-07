@@ -173,11 +173,14 @@ if (isCLIMode) {
 
 	// 进行 Axios 检查，使用 asyncPool 限制同时查询数
 	await asyncPool(config.AXIOS_CHECK_MAX_CONCURRENT, urls, async (url) => {
-		logger.info(`axiosCheck 开始巡查站点 \x1b[0m${url}\x1b[34m`, "APP");
+		logger.info(
+			chalkTemplate`axiosCheck 开始巡查站点 {reset ${url}}`,
+			"APP",
+		);
 		await axiosCheck(undefined, url).then((axiosResult) => {
 			if (!axiosResult) {
 				logger.err(
-					`\x1b[0m${url}\x1b[34m 未能获取到 axiosCheck 的结果`,
+					chalkTemplate`{reset ${url} 未能获取到 axiosCheck 的结果`,
 					"APP",
 				);
 			} else {
