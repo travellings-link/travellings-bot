@@ -108,7 +108,7 @@ export async function checkAll() {
 			(runWebsCount / allWebsCountWithoutWaitStatus) * 100;
 
 		// 无 Token 模式跳过此部分
-		if (process.env["PUBLIC_MODE"] !== "true") {
+		if (!config.NO_TOKEN_MODE) {
 			// 发送 bot 消息，发送超过 maxDaysWithoutRun 天未 RUN 过的站点
 			// 具体操作是检查数据库 lastStatusRunTime 字段为 null 或者时间超过 maxDaysWithoutRun 的
 			// 记得排除 WAIT 状态站点，WAIT 是维护组已经处理过 issue 的，而此处输出的是待处理的
