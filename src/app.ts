@@ -41,7 +41,7 @@ async function checkAll() {
 	logger.info("✓ 开始巡查站点", "APP");
 
 	// 备份巡查前的数据库
-	const webModels = await WebModel.findAll();
+	const transaction = await sql.transaction();
 
 	await axiosCheck();
 	await browserCheck();
@@ -90,7 +90,7 @@ async function checkAll() {
 			"APP",
 		);
 		// 撤回数据库修改
-		await WebModel.bulkCreate(webModels, { updateOnDuplicate: ["id"] });
+		transaction.rollback();
 
 		// 调用开往 API 清除缓存
 		clearTravellingsAPICache(logger);
@@ -126,6 +126,7 @@ async function checkAll() {
 			`✓ 状态正常的站点占比 ${runWebsPercentage.toFixed(2)}%`,
 			"APP",
 		);
+		transaction.commit();
 	}
 	logger.ok("✓ 检测完成", "APP");
 }
