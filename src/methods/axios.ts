@@ -363,11 +363,14 @@ async function checkSite(
 	}
 
 	// 提交数据库修改
-	await web.update({
-		status: checkResult.status,
-		failedReason: checkResult.failedReason,
-		lastManualCheck: null,
-	});
+	await WebModel.update(
+		{
+			status: checkResult.status,
+			failedReason: checkResult.failedReason,
+			lastManualCheck: null,
+		},
+		{ where: { id: web.id } },
+	);
 
 	if (checkResult.status === "RUN") {
 		axios_logger.info(

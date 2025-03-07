@@ -405,11 +405,14 @@ async function checkSite(
 
 		switch (siteStatusResult) {
 			case "RUN":
-				await site.update({
-					status: "RUN",
-					failedReason: null,
-					lastManualCheck: null,
-				});
+				await WebModel.update(
+					{
+						status: "RUN",
+						failedReason: null,
+						lastManualCheck: null,
+					},
+					{ where: { id: site.id } },
+				);
 
 				statusCounts["run"]++;
 
@@ -419,11 +422,14 @@ async function checkSite(
 				);
 				return;
 			case "LOST":
-				await site.update({
-					status: "LOST",
-					failedReason: null,
-					lastManualCheck: null,
-				});
+				await WebModel.update(
+					{
+						status: "LOST",
+						failedReason: null,
+						lastManualCheck: null,
+					},
+					{ where: { id: site.id } },
+				);
 
 				statusCounts["lost"]++;
 
@@ -433,11 +439,14 @@ async function checkSite(
 				);
 				return;
 			default:
-				await site.update({
-					status: siteStatusResult,
-					failedReason: null,
-					lastManualCheck: null,
-				});
+				await WebModel.update(
+					{
+						status: siteStatusResult,
+						failedReason: null,
+						lastManualCheck: null,
+					},
+					{ where: { id: site.id } },
+				);
 
 				if (siteStatusResult.startsWith("4")) {
 					failedReason = "Client Error";
@@ -457,7 +466,12 @@ async function checkSite(
 				return;
 		}
 	} catch (error) {
-		await site.update({ lastManualCheck: null });
+		await WebModel.update(
+			{
+				lastManualCheck: null,
+			},
+			{ where: { id: site.id } },
+		);
 
 		statusCounts["errorCount"]++;
 
