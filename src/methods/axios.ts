@@ -11,7 +11,6 @@
 import axios, { AxiosError } from "axios";
 import axiosRetry, { exponentialDelay } from "axios-retry";
 import chalkTemplate from "chalk-template";
-import { Op } from "sequelize";
 
 import { botManager } from "../bot/botManager";
 import { config } from "../config";
@@ -158,21 +157,7 @@ export default async function normalCheck(
 		}
 	} else {
 		// 如果未传入参数，则检查所有网站
-		webs = await WebModel.findAll({
-			where: {
-				lastManualCheck: {
-					[Op.or]: [
-						{ [Op.eq]: null },
-						{
-							// 筛选出 lastManualCheck 字段的值在 30 天之前的记录
-							[Op.lt]: new Date(
-								new Date().getTime() - 30 * 24 * 60 * 60 * 1000,
-							),
-						},
-					],
-				},
-			},
-		});
+		webs = await WebModel.findAll();
 	}
 
 	// 统计站点状态，用于日志输出
@@ -362,22 +347,24 @@ async function checkSite(
 		statusCounts.errorCount++;
 	}
 
-	// 提交数据库修改
-	await web.update({
-		status: checkResult.status,
-		failedReason: checkResult.failedReason,
-		lastManualCheck: null,
-	});
-
 	if (checkResult.status === "RUN") {
 		axios_logger.info(
 			chalkTemplate`ID >> {white ${web.id}}, Result >> {green RUN}`,
 			"AXIOS",
 		);
+		// 数据库准备更新最近 RUN 的时间这项数据
+		web.lastStatusRunTime = new Date();
 	} else {
 		axios_logger.info(
 			chalkTemplate`ID >> {white ${web.id}}, Result >> {red ${checkResult.status}}, Reason >> ${checkResult.failedReason}`,
 			"AXIOS",
 		);
 	}
+
+	// 提交数据库修改
+	await web.update({
+		status: checkResult.status,
+		failedReason: checkResult.failedReason,
+		lastStatusRunTime: web.lastStatusRunTime,
+	});
 }

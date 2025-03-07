@@ -28,7 +28,7 @@ class WebModel extends Model<
 	declare link: string;
 	declare tag: string | null;
 	declare failedReason: string | null;
-	declare lastManualCheck: Date | null;
+	declare lastStatusRunTime: Date | null; // 这个字段用于存储上一次检查为 RUN 状态的时间
 }
 
 WebModel.init(
@@ -58,7 +58,7 @@ WebModel.init(
 			type: DataTypes.STRING,
 			allowNull: true,
 		},
-		lastManualCheck: {
+		lastStatusRunTime: {
 			type: DataTypes.DATE,
 			allowNull: true,
 		},

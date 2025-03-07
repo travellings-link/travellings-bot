@@ -87,6 +87,7 @@ export class WaitToRunMessageQueue {
 					content: "开往巡查姬提醒您：",
 				},
 			],
+			[{ type: "text", content: "" }],
 		];
 		message.push([
 			{

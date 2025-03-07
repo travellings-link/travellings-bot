@@ -46,7 +46,7 @@
   - `link`：网站链接
   - `tag`：标签
   - `failedReason`：失败原因
-  - `lastManualCheck`：最后手动检查时间
+  - `lastStatusRunTime`：上一次检查为 RUN 状态的时间
 - 创建 `users` 表，包含以下字段：
   - `id`
   - `user`

@@ -1,3 +1,4 @@
+import { checkAll } from "../../app";
 import axiosCheck from "../../methods/axios";
 import browserCheck from "../../methods/browser";
 import { WebModel } from "../../modules/sqlModel";
@@ -16,8 +17,7 @@ export const check: MessageProcessor = async (ctx) => {
 			browserCheck();
 		} else if (input === "all") {
 			ctx.reply("巡查任务已启动，请稍后查看报告捏 ~");
-			await axiosCheck();
-			browserCheck();
+			checkAll();
 		} else {
 			ctx.reply("方式无效，当前可选方式：axios, browser 喵");
 			return;
