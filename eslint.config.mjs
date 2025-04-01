@@ -1,3 +1,4 @@
+/* eslint-disable import-x/no-named-as-default-member */
 import { includeIgnoreFile } from "@eslint/compat";
 import pluginJs from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
@@ -32,8 +33,6 @@ export default tseslint.config(
 			parser: tsParser,
 			ecmaVersion: "latest",
 			sourceType: "module",
-		},
-		languageOptions: {
 			globals: {
 				...globals.node,
 				...globals.commonjs,
