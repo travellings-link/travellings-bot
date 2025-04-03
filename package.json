@@ -15,10 +15,12 @@
 	},
 	"dependencies": {
 		"@larksuiteoapi/node-sdk": "^1.43.0",
+		"@types/cls-hooked": "^4.3.9",
 		"axios": "^1.8.1",
 		"axios-retry": "^4.5.0",
 		"chalk": "^5.4.1",
 		"chalk-template": "^1.1.0",
+		"cls-hooked": "^4.2.2",
 		"dotenv": "^16.4.7",
 		"moment-timezone": "^0.5.47",
 		"mysql2": "^3.12.0",
