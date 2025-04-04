@@ -23,16 +23,20 @@
 		"moment-timezone": "^0.5.47",
 		"mysql2": "^3.12.0",
 		"node-cron": "^3.0.3",
+		"punycode": "^2.3.1",
 		"puppeteer": "^24.3.0",
 		"sequelize": "^6.37.5",
 		"telegraf": "^4.15.3"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.7",
+		"@eslint/js": "^9.23.0",
 		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
 		"@types/node": "^22.13.8",
 		"@types/node-cron": "^3.0.11",
+		"@typescript-eslint/parser": "^8.29.0",
 		"eslint": "^9.21.0",
+		"eslint-config-prettier": "^10.1.1",
 		"eslint-import-resolver-typescript": "^3.8.3",
 		"eslint-plugin-import-x": "^4.6.1",
 		"eslint-plugin-prettier": "^5.2.3",
@@ -44,5 +48,5 @@
 		"typescript-eslint": "^8.25.0",
 		"unbuild": "^3.5.0"
 	},
-	"packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
+	"packageManager": "pnpm@10.7.1"
 }
