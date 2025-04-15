@@ -8,18 +8,16 @@
  * @returns 如果页面内容包含任意指定的关键字或链接，则返回 `true`，否则返回 `false`。
  */
 export function checkPageContent(pageContent: string, looseMode?: boolean) {
-	let includeEN = false;
-	let includeZH = false;
-	if (looseMode) {
-		// 可能的绕过方法 -> 站点挂个无实际跳转作用的文字
-		includeEN = pageContent.includes("travelling");
-		includeZH = pageContent.includes("开往");
-	}
+	// 通过开往入口文字巡查
+	// 可能的绕过方法 -> 站点挂个无实际跳转作用的文字
+	const includeEN = pageContent.includes("travelling");
+	const includeZH = pageContent.includes("开往");
 
 	// 适配特殊情况
 	const specialCases = [
 		"anzhiyu.totraveling()", // hexo-theme-anzhiyu
 		"totraveling()", // halo-theme-hao
+		"https%3A%2F%2Fwww.travellings.cn%2Fplain.html", // ID 600 dao.js.cn
 	];
 	const includeSpecialCase = specialCases.some((caseItem) =>
 		pageContent.includes(caseItem),
@@ -41,5 +39,9 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 	const includeLink = links.some((link) =>
 		pageContent.includes(`https://${link}`),
 	);
-	return includeLink || includeSpecialCase || includeEN || includeZH;
+	return (
+		includeLink ||
+		includeSpecialCase ||
+		(looseMode && (includeEN || includeZH))
+	);
 }
