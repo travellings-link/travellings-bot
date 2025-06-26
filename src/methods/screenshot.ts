@@ -1,11 +1,9 @@
-// const { Op } = require('sequelize');
 import fs from "fs";
-import path from "path";
-import { Browser, launch } from "puppeteer";
 
 import { config } from "../config";
 import { WebModel } from "../modules/sqlModel";
 import { logger } from "../modules/typedLogger";
+import { initializeBrowserPool } from "../utils/browserPool";
 
 // 如果不存在 tmp 就创建一个
 const tmpPath = config.TMP_PATH;
@@ -13,7 +11,14 @@ if (!fs.existsSync(tmpPath)) {
 	fs.mkdirSync(tmpPath);
 }
 
-async function screenshotByID(id: number) {
+/**
+ * 根据给定的 ID 生成对应网页的截图。
+ *
+ * @param id - 数据库中网页记录的主键 ID。
+ * @returns 一个 Promise，解析为包含截图图片的 Buffer。
+ * @throws 如果未找到指定 ID 的网页会抛出错误。
+ */
+async function screenshotByID(id: number): Promise<Buffer> {
 	const web = await WebModel.findByPk(id);
 
 	if (!web) {
@@ -23,49 +28,33 @@ async function screenshotByID(id: number) {
 	return await screenshotByUrl(web.link);
 }
 
-async function screenshotByUrl(url: string) {
-	let browser: Browser | null = null;
-	let screenshotBuffer: Buffer | null = null;
-	try {
-		logger.debug("Launching Browser.", "SCREENSHOT");
-		browser = await launch({
-			headless: true,
-			args: [
-				`--user-data-dir=${path.resolve(tmpPath)}`,
-				"--user-agent=Mozilla/5.0 (compatible; Travellings Check Bot; +https://www.travellings.cn/docs/qa)",
-				"--disable-logging",
-				"--log-level=3",
-				"--no-sandbox",
-				"--disable-setuid-sandbox",
-			],
-		});
-		logger.debug("Browser Launched.", "SCREENSHOT");
-		const page = await browser.newPage();
-		logger.debug("Page created.", "SCREENSHOT");
-		await page.setViewport({ width: 1920, height: 1080 });
-		logger.debug("Page Viewport setted.", "SCREENSHOT");
-		await page.setExtraHTTPHeaders({
-			referer: "https://www.travellings.cn/go.html", // 来自开往的 Referer
-		});
-		logger.debug("Page Header setted.", "SCREENSHOT");
-		// await page.setDefaultNavigationTimeout(process.env.LOAD_TIMEOUT * 1000);
-		await Promise.all([
-			page.goto(url),
-			page.waitForNavigation({ waitUntil: "networkidle0" }),
-		]);
-		logger.debug("Navigation finalized.", "SCREENSHOT");
-		screenshotBuffer = Buffer.from(await page.screenshot());
-		logger.debug("Screen shotted.", "SCREENSHOT");
-	} catch (e) {
-		if ((e as Error)["message"] !== undefined) {
-			logger.err((e as Error).message, "SCREENSHOT");
+/**
+ * 根据指定的 URL 生成网页截图。
+ *
+ * @param url - 需要截图的网页 URL。
+ * @returns 一个 Promise，解析为包含截图图片的 Buffer。
+ * @throws 如果截图操作失败会抛出错误。
+ */
+async function screenshotByUrl(url: string): Promise<Buffer> {
+	const pool = await initializeBrowserPool(1);
+	const returnValues = await pool.work([{ url }], async (payload, page) => {
+		logger.debug(`Navigating to ${payload.url}`, "SCREENSHOT");
+		const buffer = Buffer.from(await page.screenshot());
+		return { url, buffer };
+	});
+	const ret = returnValues.at(0) ?? {
+		ok: false,
+		error: new Error("No return value"),
+	};
+	if (!ret.ok) {
+		const error = ret.error as Error;
+		if (error.message !== undefined) {
+			logger.err(error.message, "SCREENSHOT");
 		}
 		throw new Error("出错了喵~ 更多信息可能包含在控制台中~");
-	} finally {
-		await browser?.close();
-		logger.debug("Browser Closed.", "SCREENSHOT");
 	}
-	return screenshotBuffer;
+	const { buffer } = ret.value;
+	return buffer;
 }
 
 export { screenshotByID, screenshotByUrl };
