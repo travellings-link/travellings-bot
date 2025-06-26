@@ -42,6 +42,7 @@ async function screenshotByUrl(url: string): Promise<Buffer> {
 		const buffer = Buffer.from(await page.screenshot());
 		return { url, buffer };
 	});
+	await pool.close();
 	const ret = returnValues.at(0) ?? {
 		ok: false,
 		error: new Error("No return value"),
