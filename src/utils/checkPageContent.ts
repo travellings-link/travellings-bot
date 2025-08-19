@@ -17,7 +17,7 @@ export function checkPageContent(pageContent: string, looseMode?: boolean) {
 	const specialCases = [
 		"anzhiyu.totraveling()", // hexo-theme-anzhiyu
 		"totraveling()", // halo-theme-hao
-		"https%3A%2F%2Fwww.travellings.cn%2Fplain.html", // ID 600 dao.js.cn
+		"https://cdn.wulintang.net/imgurl/go.php?url=https%3A%2F%2Fwww.travellings.cn%2Fplain.html", // ID 600 dao.js.cn
 	];
 	const includeSpecialCase = specialCases.some((caseItem) =>
 		pageContent.includes(caseItem),
