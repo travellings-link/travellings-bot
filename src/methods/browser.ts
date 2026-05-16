@@ -409,6 +409,7 @@ async function checkSite(
 					status: "RUN",
 					failedReason: null,
 					lastManualCheck: null,
+					lastUpdated: new Date(),
 				});
 
 				statusCounts["run"]++;

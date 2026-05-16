@@ -363,11 +363,20 @@ async function checkSite(
 	}
 
 	// 提交数据库修改
-	await web.update({
-		status: checkResult.status,
-		failedReason: checkResult.failedReason,
-		lastManualCheck: null,
-	});
+	if (checkResult.status === "RUN") {
+		await web.update({
+			status: checkResult.status,
+			failedReason: checkResult.failedReason,
+			lastManualCheck: null,
+			lastUpdated: new Date(),
+		});
+	} else {
+		await web.update({
+			status: checkResult.status,
+			failedReason: checkResult.failedReason,
+			lastManualCheck: null,
+		});
+	}
 
 	if (checkResult.status === "RUN") {
 		axios_logger.info(

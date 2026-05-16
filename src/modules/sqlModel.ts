@@ -22,13 +22,31 @@ class WebModel extends Model<
 	InferAttributes<WebModel>,
 	InferCreationAttributes<WebModel>
 > {
-	declare id: number;
+	declare id: CreationOptional<number>;
 	declare status: string;
 	declare name: string;
 	declare link: string;
 	declare tag: string | null;
 	declare failedReason: string | null;
 	declare lastManualCheck: Date | null;
+	declare lastUpdated: Date | null;
+}
+
+class ArchiveModel extends Model<
+	InferAttributes<ArchiveModel>,
+	InferCreationAttributes<ArchiveModel>
+> {
+	declare id: CreationOptional<number>;
+	declare originalId: number;
+	declare status: string;
+	declare name: string;
+	declare link: string;
+	declare tag: string | null;
+	declare failedReason: string | null;
+	declare lastManualCheck: Date | null;
+	declare lastUpdated: Date | null;
+	declare archivedAt: Date;
+	declare archiveReason: string;
 }
 
 WebModel.init(
@@ -59,6 +77,10 @@ WebModel.init(
 			allowNull: true,
 		},
 		lastManualCheck: {
+			type: DataTypes.DATE,
+			allowNull: true,
+		},
+		lastUpdated: {
 			type: DataTypes.DATE,
 			allowNull: true,
 		},
@@ -139,4 +161,59 @@ UserModel.init(
 	},
 );
 
-export { WebModel, UserModel };
+ArchiveModel.init(
+	{
+		id: {
+			type: DataTypes.INTEGER,
+			autoIncrement: true,
+			primaryKey: true,
+		},
+		originalId: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+		},
+		status: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		name: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		link: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		tag: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		failedReason: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		lastManualCheck: {
+			type: DataTypes.DATE,
+			allowNull: true,
+		},
+		lastUpdated: {
+			type: DataTypes.DATE,
+			allowNull: true,
+		},
+		archivedAt: {
+			type: DataTypes.DATE,
+			allowNull: false,
+		},
+		archiveReason: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+	},
+	{
+		tableName: "archives",
+		sequelize: sql,
+		timestamps: false,
+	},
+);
+
+export { WebModel, UserModel, ArchiveModel };
