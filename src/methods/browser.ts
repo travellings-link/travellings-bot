@@ -152,7 +152,7 @@ export default async function browserCheck(
 			// 检查全部数据库中符合要求的网站
 
 			// 筛选出符合要求的网站
-			const sitesToCheck = await WebModel.findAll({
+			const sitesToCheck = await WebModel.scope("checkable").findAll({
 				where: {
 					status: {
 						[Op.in]: ["LOST", "ERROR", "403", "WAIT"],
@@ -409,6 +409,7 @@ async function checkSite(
 					status: "RUN",
 					failedReason: null,
 					lastManualCheck: null,
+					lastUpdated: new Date(),
 				});
 
 				statusCounts["run"]++;

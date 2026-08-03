@@ -158,7 +158,7 @@ export default async function normalCheck(
 		}
 	} else {
 		// 如果未传入参数，则检查所有网站
-		webs = await WebModel.findAll({
+		webs = await WebModel.scope("checkable").findAll({
 			where: {
 				lastManualCheck: {
 					[Op.or]: [
@@ -363,11 +363,20 @@ async function checkSite(
 	}
 
 	// 提交数据库修改
-	await web.update({
-		status: checkResult.status,
-		failedReason: checkResult.failedReason,
-		lastManualCheck: null,
-	});
+	if (checkResult.status === "RUN") {
+		await web.update({
+			status: checkResult.status,
+			failedReason: checkResult.failedReason,
+			lastManualCheck: null,
+			lastUpdated: new Date(),
+		});
+	} else {
+		await web.update({
+			status: checkResult.status,
+			failedReason: checkResult.failedReason,
+			lastManualCheck: null,
+		});
+	}
 
 	if (checkResult.status === "RUN") {
 		axios_logger.info(

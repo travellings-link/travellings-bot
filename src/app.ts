@@ -15,6 +15,15 @@ import { schedule } from "node-cron";
 import { LarkAdapter } from "./bot/adapters/larkAdapter";
 import { TelegramAdapter } from "./bot/adapters/telegramAdapter";
 import { botManager } from "./bot/botManager";
+import {
+	archive_now,
+	archive_statuses,
+	archives,
+	clear_archives,
+	delete_archive,
+	delete_archive_by_status,
+	restore,
+} from "./bot/commands/archives";
 import { check } from "./bot/commands/check";
 import { help } from "./bot/commands/help";
 import { query } from "./bot/commands/query";
@@ -27,6 +36,7 @@ import axiosCheck from "./methods/axios";
 import browserCheck from "./methods/browser";
 import sql from "./modules/sqlConfig";
 import { logger } from "./modules/typedLogger";
+import { runAutoArchive } from "./utils/archiveManager";
 import { asyncPool } from "./utils/asyncPool";
 import { checkAll } from "./utils/checkAll";
 import { time } from "./utils/time";
@@ -155,6 +165,32 @@ botManager.registerCommand(
 	"screenshot",
 	requireSpecifiedChat(requireAdmin(screenshot)),
 );
+// 归档相关命令
+botManager.registerCommand("archives", requireSpecifiedChat(archives));
+botManager.registerCommand(
+	"restore",
+	requireSpecifiedChat(requireAdmin(restore)),
+);
+botManager.registerCommand(
+	"delete_archive",
+	requireSpecifiedChat(requireAdmin(delete_archive)),
+);
+botManager.registerCommand(
+	"clear_archives",
+	requireSpecifiedChat(requireAdmin(clear_archives)),
+);
+botManager.registerCommand(
+	"archive_now",
+	requireSpecifiedChat(requireAdmin(archive_now)),
+);
+botManager.registerCommand(
+	"archive_statuses",
+	requireSpecifiedChat(archive_statuses),
+);
+botManager.registerCommand(
+	"delete_archive_by_status",
+	requireSpecifiedChat(requireAdmin(delete_archive_by_status)),
+);
 
 logger.info("没到点呢，小睡一会 ~", "APP");
 
@@ -162,3 +198,15 @@ schedule("0 4 * * *", () => {
 	logger.info(`定时任务开始！当前时间 ${time()}`, "APP");
 	checkAll();
 });
+
+// 归档定时任务
+if (config.AUTO_ARCHIVE_ENABLE) {
+	logger.info(
+		`归档定时任务已启用，调度: ${config.AUTO_ARCHIVE_SCHEDULE}`,
+		"APP",
+	);
+	schedule(config.AUTO_ARCHIVE_SCHEDULE, () => {
+		logger.info(`归档定时任务开始！当前时间 ${time()}`, "APP");
+		runAutoArchive();
+	});
+}
