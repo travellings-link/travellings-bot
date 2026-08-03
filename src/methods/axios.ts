@@ -158,7 +158,7 @@ export default async function normalCheck(
 		}
 	} else {
 		// 如果未传入参数，则检查所有网站
-		webs = await WebModel.findAll({
+		webs = await WebModel.scope("checkable").findAll({
 			where: {
 				lastManualCheck: {
 					[Op.or]: [
