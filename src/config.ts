@@ -64,4 +64,13 @@ export const config = {
 
 	// Run Mode
 	NO_TOKEN_MODE: process.env["NO_TOKEN_MODE"] === "true",
+
+	// Archive (回收站)
+	AUTO_ARCHIVE_THRESHOLD_DAYS: process.env["AUTO_ARCHIVE_THRESHOLD_DAYS"]
+		? parseInt(process.env["AUTO_ARCHIVE_THRESHOLD_DAYS"])
+		: 365,
+	AUTO_ARCHIVE_SCHEDULE:
+		process.env["AUTO_ARCHIVE_SCHEDULE"] || "0 0 2 * * 0",
+	AUTO_ARCHIVE_ENABLE: process.env["AUTO_ARCHIVE_ENABLE"] !== "false",
+	ARCHIVE_RECHECK_BEFORE: process.env["ARCHIVE_RECHECK_BEFORE"] !== "false",
 };
