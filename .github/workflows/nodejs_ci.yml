@@ -5,25 +5,34 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
+# 取消同一 ref 上正在运行的旧工作流，节省资源
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
+      # 使用 package.json 中声明的 packageManager 版本，避免硬编码与本地不一致
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Build
         run: pnpm build
