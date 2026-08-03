@@ -11,8 +11,8 @@ import {
 	InferAttributes,
 	InferCreationAttributes,
 	Model,
+	Op,
 } from "sequelize";
-import { Op } from "sequelize";
 
 import { config } from "../config";
 import { WaitToRunMessageQueue } from "../utils/messageQueue";
